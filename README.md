@@ -1,7 +1,7 @@
 # josyn-backend
 
 > **Stub — placeholder for the JOSYN backend scheduler integration layer.**
-> Full architectural context: [josyn-platform](../josyn-platform)
+> Full architectural context: [josyn-platform](../josyn-platform/README.md)
 
 ---
 
