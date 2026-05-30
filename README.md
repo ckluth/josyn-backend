@@ -9,7 +9,7 @@
 
 The scheduling and session-orchestration layer that bridges the legacy job system with the JOSYN platform.
 
-Its `SessionStarter` component is the **migration rendezvous**: instead of spawning the old `JobHost.exe`, it will spawn `JAPServer.exe JOSYN-IPC <guid>` and `job.exe JOSYN-IPC <guid>`, allowing both to rendezvous via named-pipe IPC.
+Its `SessionStarter` component is the **migration rendezvous**: instead of spawning the old `JobHost.exe`, it will spawn `JAPServer.exe JOSYN-IPC <guid>`, which in turn coordinates with the job executable via named-pipe IPC.
 
 See [josyn-platform/repos/josyn-backend.md](../josyn-platform/repos/josyn-backend.md) for the full architectural description, migration narrative, and planned component list.
 

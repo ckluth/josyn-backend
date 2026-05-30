@@ -24,8 +24,8 @@ namespace JOSYN.Backend.SessionStarter;
 public interface ISessionStarter
 {
     /// <summary>
-    /// Creates a new session entry in the session store and launches both
-    /// <c>JAPServer.exe</c> and <c>job.exe</c> with the freshly assigned session GUID.
+    /// Creates a new session entry in the session store and launches 
+    /// <c>JAPServer.exe</c> with the freshly assigned session GUID.
     /// </summary>
     /// <param name="request">The session start parameters.</param>
     /// <returns>The fresh session GUID on success; an error on failure.</returns>
