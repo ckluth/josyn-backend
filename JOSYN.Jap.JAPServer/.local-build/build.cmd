@@ -16,25 +16,17 @@ if /i "%CONFIGURATION%" neq "Release" if /i "%CONFIGURATION%" neq "Debug" (
     exit /b 1
 )
 
-set "ROOT=%~dp0.."
+set "SLNX_FILE=%~dp0..\..\JOSYN.Jap.JAPServer.slnx"
 
+echo [INFO] Solution: %SLNX_FILE%
 echo [INFO] Starte dotnet build --configuration %CONFIGURATION% ...
 echo.
 
-echo === JOSYN.Backend.SessionStarter ===
-dotnet build "%ROOT%\JOSYN.Backend.SessionStarter.slnx" --configuration %CONFIGURATION%
-if %ERRORLEVEL% neq 0 (
-    echo.
-    echo [FEHLER] Build fehlgeschlagen: JOSYN.Backend.SessionStarter. Exit-Code: %ERRORLEVEL%
-    exit /b %ERRORLEVEL%
-)
+dotnet build "%SLNX_FILE%" --configuration %CONFIGURATION%
 
-echo.
-echo === JOSYN.Jap.JAPServer ===
-dotnet build "%ROOT%\JOSYN.Jap.JAPServer.slnx" --configuration %CONFIGURATION%
 if %ERRORLEVEL% neq 0 (
     echo.
-    echo [FEHLER] Build fehlgeschlagen: JOSYN.Jap.JAPServer. Exit-Code: %ERRORLEVEL%
+    echo [FEHLER] Build fehlgeschlagen. Exit-Code: %ERRORLEVEL%
     exit /b %ERRORLEVEL%
 )
 
