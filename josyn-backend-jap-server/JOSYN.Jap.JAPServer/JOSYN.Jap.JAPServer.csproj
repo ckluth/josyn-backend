@@ -28,10 +28,12 @@
 		<PackageReference Include="JOSYN.Jap.Shared.Log" Version="1.0.0-preview01"/>
 	</ItemGroup>
 	<ItemGroup>  		
-		<None Include="..\.gitignore" Visible="false"/>
-		<None Include="..\POC-HACKS.md" Visible="false"/>
+		<None Include="..\..\.gitignore" Visible="false"/>
+		<None Include="..\..\POC-HACKS.md" Visible="false"/>
 		<None Include="icon.ico" Visible="false"/>
 		<None Include="..\Directory.Build.props" Visible="false"/>		
 		<None Include="..\nuget.config" Visible="false"/>				
 	</ItemGroup>
 </Project>
+
+

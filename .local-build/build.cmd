@@ -21,17 +21,8 @@ set "ROOT=%~dp0.."
 echo [INFO] Starte dotnet build --configuration %CONFIGURATION% ...
 echo.
 
-echo === JOSYN.Backend.SessionStarter ===
-dotnet build "%ROOT%\JOSYN.Backend.SessionStarter.slnx" --configuration %CONFIGURATION%
-if %ERRORLEVEL% neq 0 (
-    echo.
-    echo [FEHLER] Build fehlgeschlagen: JOSYN.Backend.SessionStarter. Exit-Code: %ERRORLEVEL%
-    exit /b %ERRORLEVEL%
-)
-
-echo.
 echo === JOSYN.Jap.JAPServer ===
-dotnet build "%ROOT%\JOSYN.Jap.JAPServer.slnx" --configuration %CONFIGURATION%
+dotnet build "%ROOT%\josyn-backend-jap-server\JOSYN.Jap.JAPServer.slnx" --configuration %CONFIGURATION%
 if %ERRORLEVEL% neq 0 (
     echo.
     echo [FEHLER] Build fehlgeschlagen: JOSYN.Jap.JAPServer. Exit-Code: %ERRORLEVEL%
@@ -41,3 +32,4 @@ if %ERRORLEVEL% neq 0 (
 echo.
 echo [OK] Build erfolgreich abgeschlossen ^(%CONFIGURATION%^).
 exit /b 0
+
