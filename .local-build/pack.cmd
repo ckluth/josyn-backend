@@ -1,4 +1,26 @@
 @echo off
 CHCP 1252
-echo [INFO] josyn-backend enthaelt kein NuGet-Paket -- nichts zu packen.
+setlocal
+
+set "ROOT=%~dp0.."
+
+call :run_pack "josyn-backend-session-store"
+if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
+
+call :run_pack "josyn-backend-global-config"
+if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
+
+call :run_pack "josyn-backend-session-starter"
+if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
+
+echo.
+echo [OK] Pack abgeschlossen.
 exit /b 0
+
+:run_pack
+echo.
+echo ======================================================
+echo  %~1
+echo ======================================================
+call "%ROOT%\%~1\.local-build\pack.cmd"
+exit /b %ERRORLEVEL%

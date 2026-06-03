@@ -21,11 +21,43 @@ set "ROOT=%~dp0.."
 echo [INFO] Starte dotnet build --configuration %CONFIGURATION% ...
 echo.
 
+echo === JOSYN.Backend.SessionStore ===
+dotnet build "%ROOT%\josyn-backend-session-store\JOSYN.Backend.SessionStore.slnx" --configuration %CONFIGURATION%
+if %ERRORLEVEL% neq 0 (
+    echo.
+    echo [FEHLER] Build fehlgeschlagen: JOSYN.Backend.SessionStore. Exit-Code: %ERRORLEVEL%
+    exit /b %ERRORLEVEL%
+)
+
+echo === JOSYN.Backend.GlobalConfig ===
+dotnet build "%ROOT%\josyn-backend-global-config\JOSYN.Backend.GlobalConfig.slnx" --configuration %CONFIGURATION%
+if %ERRORLEVEL% neq 0 (
+    echo.
+    echo [FEHLER] Build fehlgeschlagen: JOSYN.Backend.GlobalConfig. Exit-Code: %ERRORLEVEL%
+    exit /b %ERRORLEVEL%
+)
+
+echo === JOSYN.Backend.SessionStarter ===
+dotnet build "%ROOT%\josyn-backend-session-starter\JOSYN.Backend.SessionStarter.slnx" --configuration %CONFIGURATION%
+if %ERRORLEVEL% neq 0 (
+    echo.
+    echo [FEHLER] Build fehlgeschlagen: JOSYN.Backend.SessionStarter. Exit-Code: %ERRORLEVEL%
+    exit /b %ERRORLEVEL%
+)
+
 echo === JOSYN.Jap.JAPServer ===
 dotnet build "%ROOT%\josyn-backend-jap-server\JOSYN.Jap.JAPServer.slnx" --configuration %CONFIGURATION%
 if %ERRORLEVEL% neq 0 (
     echo.
     echo [FEHLER] Build fehlgeschlagen: JOSYN.Jap.JAPServer. Exit-Code: %ERRORLEVEL%
+    exit /b %ERRORLEVEL%
+)
+
+echo === JOSYN.Backend.Demo.FakeSessionStarterConsumer ===
+dotnet build "%ROOT%\josyn-backend-demo\JOSYN.Backend.Demo.FakeSessionStarterConsumer.slnx" --configuration %CONFIGURATION%
+if %ERRORLEVEL% neq 0 (
+    echo.
+    echo [FEHLER] Build fehlgeschlagen: JOSYN.Backend.Demo.FakeSessionStarterConsumer. Exit-Code: %ERRORLEVEL%
     exit /b %ERRORLEVEL%
 )
 

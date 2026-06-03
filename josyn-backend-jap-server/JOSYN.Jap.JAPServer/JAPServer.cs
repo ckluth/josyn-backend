@@ -1,3 +1,4 @@
+using JOSYN.Backend.SessionStore;
 using JOSYN.Foundation.PropertyBag;
 using JOSYN.Foundation.ResultPattern;
 using JOSYN.Jap.Shared.Contract;
@@ -5,55 +6,54 @@ using JOSYN.Jap.Shared.Log;
 
 namespace JOSYN.Jap.JAPServer;
 
-/// <summary>
-/// This is a fake-implementation by now...
-/// </summary>
-internal sealed class JAPServer : IJosynApplicationProtocol
+internal sealed class JAPServer(ISessionStore sessionStore, Guid sessionGuid) : IJosynApplicationProtocol
 {
-    async Task<Result<string>> IJosynApplicationProtocol.GetRawArguments()
+    Task<Result<string>> IJosynApplicationProtocol.GetRawArguments()
     {
-        return await Task.FromResult(FakeReadArgumentsFromFile());
+        var get = sessionStore.GetSession(sessionGuid);
+        if (!get.Succeeded)
+            return Task.FromResult<Result<string>>(get.ToResult<string>());
+        return Task.FromResult<Result<string>>(get.Value.Arguments);
     }
 
-    async Task<Result> IJosynApplicationProtocol.PutRawResult(string result)
+    Task<Result> IJosynApplicationProtocol.PutRawResult(string result)
     {
+        var get = sessionStore.GetSession(sessionGuid);
+        if (!get.Succeeded)
+            return Task.FromResult(Result.Propagate(get.ToResult()));
+
+        var session = get.Value;
+        var updated = new JobSession
+        {
+            UID         = session.UID,
+            JobTypeName = session.JobTypeName,
+            Arguments   = session.Arguments,
+            Result      = result
+        };
+
+        var save = sessionStore.UpdateSession(updated);
+        if (!save.Succeeded)
+            return Task.FromResult(Result.Propagate(save));
+
         Console.WriteLine();
         Console.ForegroundColor = ConsoleColor.Yellow;
         Console.WriteLine("[PROCESSING]");
         Console.WriteLine(result);
-        Console.WriteLine();
         Console.ResetColor();
 
-        return await Task.FromResult(Result.Success);
+        return Task.FromResult(Result.Success);
     }
 
-    async Task<Result> IJosynApplicationProtocol.PutError(string serializedError)
+    Task<Result> IJosynApplicationProtocol.PutError(string serializedError)
     {
         var deserialize = PropertyBag.Deserialize<ErrorReport>(serializedError);
         if (!deserialize.Succeeded)
         {
             LocalLog.WriteError($"ErrorReport konnte nicht deserialisiert werden: {deserialize.ErrorMessage}\nRaw: {serializedError}");
-            return Result.Propagate(deserialize.ToResult());
+            return Task.FromResult(Result.Propagate(deserialize.ToResult()));
         }
         var report = deserialize.Value;
         LocalLog.WriteError(report.Causer, report.Message, report.CallStack, report.ExceptionDetails);
-        return await Task.FromResult(Result.Success);
-    }
-
-    internal static string FakeReadArgumentsFromFile()
-    {
-        const string inicontent = """
-                                  Msg=Hello JOSYN
-                                  Count=9
-                                  MaybeCount=
-                                  IsSpecial=True
-                                  Expired=21.09.1988 00:00:00
-                                  OnlyDate=04.11.1966
-                                  MaybeDate=
-                                  EnumValue=Value2
-                                  MyTimeSpan=09:10:59
-                                  Price=1.200,30
-                                  """;
-        return inicontent;
+        return Task.FromResult(Result.Success);
     }
 }

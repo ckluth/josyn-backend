@@ -1,3 +1,5 @@
+using JOSYN.Backend.GlobalConfig;
+using JOSYN.Backend.SessionStore;
 using JOSYN.Foundation.JIP;
 using JOSYN.Jap.Shared.Contract;
 using JOSYN.Jap.Shared.Log;
@@ -26,7 +28,10 @@ internal static class Host
                 return 1;
             }
 
-            return await RunServer(sessionKey);
+            var config       = new HardcodedGlobalConfig();
+            var sessionStore = new SessionStore(config.SessionStoreConnectionString);
+
+            return await RunServer(sessionKey, sessionStore);
         }
         catch (Exception ex)
         {
@@ -47,12 +52,13 @@ internal static class Host
     // Server lifecycle
     // -------------------------------------------------------------------------
 
-    private static async Task<int> RunServer(Guid sessionKey)
+    private static async Task<int> RunServer(Guid sessionKey, SessionStore sessionStore)
     {
         Console.WriteLine("Starting Server...");
         var sw = Stopwatch.StartNew();
 
-        var dispatcherResult = new JipDispatcher().RegisterAll<IJosynApplicationProtocol>(_japServer);
+        var japServer        = new JAPServer(sessionStore, sessionKey);
+        var dispatcherResult = new JipDispatcher().RegisterAll<IJosynApplicationProtocol>(japServer);
         if (!dispatcherResult.Succeeded)
         {
             LocalLog.WriteError(dispatcherResult.ToResult());
@@ -98,8 +104,6 @@ internal static class Host
     // -------------------------------------------------------------------------
     // Dispatch
     // -------------------------------------------------------------------------
-
-    private static readonly JAPServer _japServer = new();
 
     private static async Task<string> HandleRequest(IJipDispatcher dispatcher, string requestStr)
     {
