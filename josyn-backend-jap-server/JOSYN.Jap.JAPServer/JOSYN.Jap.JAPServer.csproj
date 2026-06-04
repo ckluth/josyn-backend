@@ -21,6 +21,7 @@
 		<Content Include="icon.ico"/>
 	</ItemGroup>
 	<ItemGroup>
+		<PackageReference Include="JOSYN.Backend.ErrorHandler"       Version="1.0.0-preview01"/>
 		<PackageReference Include="JOSYN.Backend.GlobalConfig"       Version="1.0.0-preview01"/>
 		<PackageReference Include="JOSYN.Backend.SessionStore"       Version="1.0.0-preview01"/>
 		<PackageReference Include="JOSYN.Foundation.JIP"             Version="1.0.0-preview01"/>

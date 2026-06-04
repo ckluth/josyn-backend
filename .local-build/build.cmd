@@ -37,11 +37,43 @@ if %ERRORLEVEL% neq 0 (
     exit /b %ERRORLEVEL%
 )
 
+echo === JOSYN.Backend.ErrorHandler ===
+dotnet build "%ROOT%\josyn-backend-error-handler\JOSYN.Backend.ErrorHandler.slnx" --configuration %CONFIGURATION%
+if %ERRORLEVEL% neq 0 (
+    echo.
+    echo [FEHLER] Build fehlgeschlagen: JOSYN.Backend.ErrorHandler. Exit-Code: %ERRORLEVEL%
+    exit /b %ERRORLEVEL%
+)
+
 echo === JOSYN.Backend.SessionStarter ===
 dotnet build "%ROOT%\josyn-backend-session-starter\JOSYN.Backend.SessionStarter.slnx" --configuration %CONFIGURATION%
 if %ERRORLEVEL% neq 0 (
     echo.
     echo [FEHLER] Build fehlgeschlagen: JOSYN.Backend.SessionStarter. Exit-Code: %ERRORLEVEL%
+    exit /b %ERRORLEVEL%
+)
+
+echo === JOSYN.Backend.Listener ===
+dotnet build "%ROOT%\josyn-backend-listener\JOSYN.Backend.Listener.slnx" --configuration %CONFIGURATION%
+if %ERRORLEVEL% neq 0 (
+    echo.
+    echo [FEHLER] Build fehlgeschlagen: JOSYN.Backend.Listener. Exit-Code: %ERRORLEVEL%
+    exit /b %ERRORLEVEL%
+)
+
+echo === JOSYN.Backend.Ticker ===
+dotnet build "%ROOT%\josyn-backend-ticker\JOSYN.Backend.Ticker.slnx" --configuration %CONFIGURATION%
+if %ERRORLEVEL% neq 0 (
+    echo.
+    echo [FEHLER] Build fehlgeschlagen: JOSYN.Backend.Ticker. Exit-Code: %ERRORLEVEL%
+    exit /b %ERRORLEVEL%
+)
+
+echo === JOSYN.Backend.CLI ===
+dotnet build "%ROOT%\josyn-backend-cli\JOSYN.Backend.CLI.slnx" --configuration %CONFIGURATION%
+if %ERRORLEVEL% neq 0 (
+    echo.
+    echo [FEHLER] Build fehlgeschlagen: JOSYN.Backend.CLI. Exit-Code: %ERRORLEVEL%
     exit /b %ERRORLEVEL%
 )
 
