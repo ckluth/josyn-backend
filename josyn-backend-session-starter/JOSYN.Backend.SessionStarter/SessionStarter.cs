@@ -30,16 +30,12 @@ public sealed class SessionStarter(ISessionStore sessionStore, IGlobalConfig glo
 
         try
         {
-            var process = Process.Start(new ProcessStartInfo
+            Process.Start(new ProcessStartInfo
             {
                 FileName        = exePath,
                 Arguments       = $"JOSYN-IPC {sessionGuid}",
                 UseShellExecute = false
-            })!;
-
-            // Brief window to detect an immediate crash before the process becomes usable.
-            if (process.WaitForExit(500) && process.ExitCode != 0)
-                return Result.Error($"JAPServer-Prozess sofort beendet. Exit-Code: {process.ExitCode}");
+            });
 
             return sessionGuid;
         }
