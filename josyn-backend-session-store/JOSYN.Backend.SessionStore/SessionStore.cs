@@ -5,7 +5,7 @@ namespace JOSYN.Backend.SessionStore;
 
 public sealed class SessionStore(string connectionString) : ISessionStore
 {
-    public Result SaveNewSession(IJobSession jobSession)
+    public Result SaveNewSession(IJobSessionRecord jobSession)
     {
         try
         {
@@ -23,7 +23,7 @@ public sealed class SessionStore(string connectionString) : ISessionStore
         catch (Exception ex) { return ex; }
     }
 
-    public Result<IJobSession> GetSession(Guid sessionUid)
+    public Result<IJobSessionRecord> GetSession(Guid sessionUid)
     {
         try
         {
@@ -35,7 +35,7 @@ public sealed class SessionStore(string connectionString) : ISessionStore
             if (entity is null)
                 return Result.Error($"No session found for UID '{sessionUid}'.");
 
-            return new JobSession
+            return new JobSessionRecord
             {
                 UID         = entity.UID,
                 JobTypeName = entity.JobTypeName,
@@ -46,7 +46,7 @@ public sealed class SessionStore(string connectionString) : ISessionStore
         catch (Exception ex) { return ex; }
     }
 
-    public Result UpdateSession(IJobSession jobSession)
+    public Result UpdateSession(IJobSessionRecord jobSession)
     {
         try
         {

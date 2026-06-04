@@ -17,7 +17,7 @@ public sealed class SessionStarter(ISessionStore sessionStore, IGlobalConfig glo
 
         var sessionGuid = Guid.NewGuid();
 
-        var save = sessionStore.SaveNewSession(new JobSession
+        var save = sessionStore.SaveNewSession(new JobSessionRecord
         {
             UID         = sessionGuid,
             JobTypeName = jobTypeName,

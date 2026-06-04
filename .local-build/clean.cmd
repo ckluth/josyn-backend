@@ -13,6 +13,9 @@ if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
 call :run_clean "josyn-backend-session-starter"
 if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
 
+call :run_clean "josyn-backend-job-registry"
+if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
+
 call :run_clean "josyn-backend-error-handler"
 if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
 
@@ -26,9 +29,6 @@ call :run_clean "josyn-backend-ticker"
 if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
 
 call :run_clean "josyn-backend-cli"
-if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
-
-call :run_clean "josyn-backend-demo"
 if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
 
 echo.

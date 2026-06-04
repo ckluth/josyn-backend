@@ -23,7 +23,7 @@ internal sealed class JAPServer(ISessionStore sessionStore, Guid sessionGuid) : 
             return Task.FromResult(Result.Propagate(get.ToResult()));
 
         var session = get.Value;
-        var updated = new JobSession
+        var updated = new JobSessionRecord
         {
             UID         = session.UID,
             JobTypeName = session.JobTypeName,

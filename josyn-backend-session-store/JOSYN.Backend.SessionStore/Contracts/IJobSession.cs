@@ -1,6 +1,6 @@
 namespace JOSYN.Backend.SessionStore;
 
-public interface IJobSession
+public interface IJobSessionRecord
 {
     Guid UID { get; init; }
     string JobTypeName { get; init; }

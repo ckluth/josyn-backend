@@ -53,6 +53,14 @@ if %ERRORLEVEL% neq 0 (
     exit /b %ERRORLEVEL%
 )
 
+echo === JOSYN.Backend.JobRegistry ===
+dotnet build "%ROOT%\josyn-backend-job-registry\JOSYN.Backend.JobRegistry.slnx" --configuration %CONFIGURATION%
+if %ERRORLEVEL% neq 0 (
+    echo.
+    echo [FEHLER] Build fehlgeschlagen: JOSYN.Backend.JobRegistry. Exit-Code: %ERRORLEVEL%
+    exit /b %ERRORLEVEL%
+)
+
 echo === JOSYN.Backend.Listener ===
 dotnet build "%ROOT%\josyn-backend-listener\JOSYN.Backend.Listener.slnx" --configuration %CONFIGURATION%
 if %ERRORLEVEL% neq 0 (
@@ -82,14 +90,6 @@ dotnet build "%ROOT%\josyn-backend-jap-server\JOSYN.Jap.JAPServer.slnx" --config
 if %ERRORLEVEL% neq 0 (
     echo.
     echo [FEHLER] Build fehlgeschlagen: JOSYN.Jap.JAPServer. Exit-Code: %ERRORLEVEL%
-    exit /b %ERRORLEVEL%
-)
-
-echo === JOSYN.Backend.Demo.FakeSessionStarterConsumer ===
-dotnet build "%ROOT%\josyn-backend-demo\JOSYN.Backend.Demo.FakeSessionStarterConsumer.slnx" --configuration %CONFIGURATION%
-if %ERRORLEVEL% neq 0 (
-    echo.
-    echo [FEHLER] Build fehlgeschlagen: JOSYN.Backend.Demo.FakeSessionStarterConsumer. Exit-Code: %ERRORLEVEL%
     exit /b %ERRORLEVEL%
 )
 

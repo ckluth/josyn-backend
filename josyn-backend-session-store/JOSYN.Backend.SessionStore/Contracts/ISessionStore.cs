@@ -4,9 +4,9 @@ namespace JOSYN.Backend.SessionStore;
 
 public interface ISessionStore
 {
-    Result SaveNewSession(IJobSession jobSession);
+    Result SaveNewSession(IJobSessionRecord jobSession);
 
-    Result<IJobSession> GetSession(Guid sessionUid);
+    Result<IJobSessionRecord> GetSession(Guid sessionUid);
 
-    Result UpdateSession(IJobSession jobSession);
+    Result UpdateSession(IJobSessionRecord jobSession);
 }

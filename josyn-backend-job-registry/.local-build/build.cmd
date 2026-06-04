@@ -15,7 +15,7 @@ if /i "%CONFIGURATION%" neq "Release" if /i "%CONFIGURATION%" neq "Debug" (
     exit /b 1
 )
 
-set "SLNX_FILE=%~dp0..\JOSYN.Backend.Demo.FakeSessionStarterConsumer.slnx"
+set "SLNX_FILE=%~dp0..\JOSYN.Backend.JobRegistry.slnx"
 
 echo [INFO] Solution: %SLNX_FILE%
 echo [INFO] Starte dotnet build --configuration %CONFIGURATION% ...
