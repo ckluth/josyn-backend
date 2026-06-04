@@ -15,4 +15,8 @@ public sealed class HardcodedGlobalConfig : IGlobalConfig
     /// <inheritdoc/>
     public string JapServerExePath =>
         @"C:\Temp\VS.OUT\JOSYN\JOSYN.Jap.JAPServer\bin\Release\JOSYN.Jap.JAPServer.exe";
+
+    /// <inheritdoc/>
+    public string JobRepositoryRoot =>
+        @"C:\Temp\VS.OUT\JOSYN\MyDemoCompany.MyDemoProduct.MyDemoJob\bin\Debug";
 }

@@ -1,3 +1,4 @@
+using JOSYN.Backend.ErrorHandler;
 using JOSYN.Backend.GlobalConfig;
 using JOSYN.Backend.SessionStore;
 using JOSYN.Foundation.JIP;
@@ -18,25 +19,30 @@ internal static class Host
         Console.OutputEncoding = new UTF8Encoding();
         LocalLog.EnableConsoleOutput = true;
 #endif
+        var config = new HardcodedGlobalConfig();
+        var errorHandler = new FileSystemErrorHandler(config);
+
         try
         {
             Console.WriteLine("ARGS: " + string.Join(" | ", args));
             var sessionKey = PipesProtocol.ParseSessionKeyCLIArguments(args);
             if (sessionKey == Guid.Empty)
             {
-                LocalLog.WriteError("Keine IPC-Session-UID angegeben.");
+                var msg = "Keine IPC-Session-UID angegeben.";
+                LocalLog.WriteError(msg);
+                errorHandler.Handle(msg);
                 return 1;
             }
 
-            var config       = new HardcodedGlobalConfig();
             var sessionStore = new SessionStore(config.SessionStoreConnectionString);
 
-            return await RunServer(sessionKey, sessionStore);
+            return await RunServer(sessionKey, sessionStore, config, errorHandler);
         }
         catch (Exception ex)
         {
-            LocalLog.WriteError("Unbehandelte Exception im Host.", exceptionDetails: ex.ToString());
-            Console.WriteLine(ex);
+            var msg = "Unbehandelte Exception im Host.";
+            LocalLog.WriteError(msg, exceptionDetails: ex.ToString());
+            errorHandler.Handle(msg, ex);
             return 1;
         }
         finally
@@ -52,53 +58,54 @@ internal static class Host
     // Server lifecycle
     // -------------------------------------------------------------------------
 
-    private static async Task<int> RunServer(Guid sessionKey, SessionStore sessionStore)
+    private static async Task<int> RunServer(
+        Guid sessionKey, SessionStore sessionStore, IGlobalConfig config, IErrorHandler errorHandler)
     {
         Console.WriteLine("Starting Server...");
         var sw = Stopwatch.StartNew();
+
+        var getSession = sessionStore.GetSession(sessionKey);
+        if (!getSession.Succeeded)
+        {
+            var msg = $"Session nicht gefunden: {sessionKey}";
+            LocalLog.WriteError(msg);
+            errorHandler.Handle(msg);
+            return 1;
+        }
+
+        var jobExePath = Path.Combine(config.JobRepositoryRoot, getSession.Value.JobTypeName + ".exe");
 
         var japServer        = new JAPServer(sessionStore, sessionKey);
         var dispatcherResult = new JipDispatcher().RegisterAll<IJosynApplicationProtocol>(japServer);
         if (!dispatcherResult.Succeeded)
         {
             LocalLog.WriteError(dispatcherResult.ToResult());
+            errorHandler.Handle(dispatcherResult.ToResult().ErrorMessage ?? "JipDispatcher-Fehler.");
             return 1;
         }
         var jipDispatcher = dispatcherResult.Value;
 
         var serverStartArguments = new ServerStartArguments
         {
-            ConnectionTimeout    = TimeSpan.FromDays(1),
+            ClientExePath        = jobExePath,
+            ConnectionTimeout    = TimeSpan.FromMinutes(1),
             HandleStringRequest  = requestStr => HandleRequest(jipDispatcher, requestStr),
             SessionKey           = sessionKey,
-            HandleErrorNotification = HandleHandlerError,
-            IsCancellationRequested = WasEscapePressed,
+            HandleErrorNotification = (req, ex) => HandleHandlerError(req, ex, errorHandler),
         };
 
-        var res = await PipesServer.RunAsync(serverStartArguments, true, () =>
-        {
-            Console.ForegroundColor = ConsoleColor.Blue;
-            Console.WriteLine("\nResestablishing Connection\n");
-            Console.ResetColor();
-        });
+        var res = await PipesServer.RunAsync(serverStartArguments);
 
         Console.WriteLine($"Finished after {sw.Elapsed}");
         if (!res.Succeeded)
         {
             LocalLog.WriteError(res);
+            errorHandler.Handle(res.ErrorMessage ?? "PipesServer-Fehler.");
             return 1;
         }
 
         LocalLog.WriteInfo("Server terminiert.");
         return 0;
-    }
-
-    private static Task<bool> WasEscapePressed()
-    {
-        if (!Console.KeyAvailable || Console.ReadKey(true).Key != ConsoleKey.Escape)
-            return Task.FromResult(false);
-        Console.WriteLine("ESC gedrückt. Abbruch...");
-        return Task.FromResult(true);
     }
 
     // -------------------------------------------------------------------------
@@ -113,9 +120,11 @@ internal static class Host
         return responseStr;
     }
 
-    private static async Task HandleHandlerError(string request, Exception ex)
+    private static async Task HandleHandlerError(string request, Exception ex, IErrorHandler errorHandler)
     {
-        LocalLog.WriteError($"Fehler beim Verarbeiten der Anfrage: {request}", exceptionDetails: ex.ToString());
+        var msg = $"Fehler beim Verarbeiten der Anfrage: {request}";
+        LocalLog.WriteError(msg, exceptionDetails: ex.ToString());
+        errorHandler.Handle(msg, ex);
         await Task.CompletedTask;
     }
 }

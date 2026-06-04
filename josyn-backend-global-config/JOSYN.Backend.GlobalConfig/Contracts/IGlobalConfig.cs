@@ -10,4 +10,10 @@ public interface IGlobalConfig
 
     /// <summary>Absolute path to the <c>JOSYN.Jap.JAPServer.exe</c> binary.</summary>
     string JapServerExePath { get; }
+
+    /// <summary>
+    /// Absolute path to the directory that contains job executables.
+    /// Convention: each job exe is named <c>{JobTypeName}.exe</c>.
+    /// </summary>
+    string JobRepositoryRoot { get; }
 }
