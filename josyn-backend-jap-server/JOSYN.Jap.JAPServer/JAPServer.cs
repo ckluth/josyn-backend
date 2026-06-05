@@ -1,3 +1,4 @@
+using JOSYN.Backend.ConfigStore;
 using JOSYN.Backend.ErrorHandler;
 using JOSYN.Backend.SessionStore;
 using JOSYN.Foundation.PropertyBag;
@@ -11,14 +12,15 @@ internal sealed class JAPServer(
     ISessionStore  sessionStore,
     Guid           sessionGuid,
     string         jobName,
-    IErrorHandler  errorHandler) : IJosynApplicationProtocol
+    IErrorHandler  errorHandler,
+    IConfigStore   configStore) : IJosynApplicationProtocol
 {
     Task<Result<string>> IJosynApplicationProtocol.GetRawArguments()
     {
         var get = sessionStore.GetSession(sessionGuid);
-        if (!get.Succeeded)
-            return Task.FromResult<Result<string>>(get.ToResult<string>());
-        return Task.FromResult<Result<string>>(get.Value.Arguments);
+        return !get.Succeeded 
+            ? Task.FromResult<Result<string>>(get.ToResult<string>()) 
+            : Task.FromResult<Result<string>>(get.Value.Arguments);
     }
 
     Task<Result> IJosynApplicationProtocol.PutRawResult(string result)
@@ -66,5 +68,18 @@ internal sealed class JAPServer(
             jobName,
             sessionGuid);
         return Task.FromResult(Result.Success);
+    }
+
+    Task<Result<RuntimeEnvironment>> IJosynApplicationProtocol.GetEnvironment()
+    {
+        var get = configStore.GetValue(ConfigKeys.RuntimeEnvironment);
+        if (!get.Succeeded)
+            return Task.FromResult<Result<RuntimeEnvironment>>(get.ToResult<RuntimeEnvironment>());
+     
+        if (!Enum.TryParse<RuntimeEnvironment>(get.Value, out var env))
+            return Task.FromResult<Result<RuntimeEnvironment>>(
+                Result<RuntimeEnvironment>.Fail($"Ungültiger RuntimeEnvironment-Wert in ConfigStore: '{get.Value}'"));
+        
+        return Task.FromResult<Result<RuntimeEnvironment>>(env);
     }
 }

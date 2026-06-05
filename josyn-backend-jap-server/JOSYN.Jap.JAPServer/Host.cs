@@ -1,7 +1,10 @@
+using JOSYN.Backend.AdapterContracts;
+using JOSYN.Backend.ConfigStore;
 using JOSYN.Backend.ErrorHandler;
 using JOSYN.Backend.BootstrapConfig;
 using JOSYN.Backend.SessionStore;
 using JOSYN.Foundation.JIP;
+using JOSYN.Foundation.ResultPattern;
 using JOSYN.Jap.Shared.Contract;
 using JOSYN.Commons.Log;
 using System.Diagnostics;
@@ -18,28 +21,41 @@ internal static class Host
         Console.OutputEncoding = new UTF8Encoding();
         LocalLog.EnableConsoleOutput = true;
 #endif
-        var config       = FileBootstrapConfig.Load("josyn.bootstrap.ini").Value!;
+        var config = FileBootstrapConfig.Load("josyn.bootstrap.ini").Value!;
         var errorHandler = new SqlErrorHandler(config.SessionStoreConnectionString);
 
         try
         {
+            
+#if DEBUG            
             Console.WriteLine("ARGS: " + string.Join(" | ", args));
+#endif            
             var sessionKey = PipesProtocol.ParseSessionKeyCLIArguments(args);
             if (sessionKey == Guid.Empty)
             {
-                var msg = "Keine IPC-Session-UID angegeben.";
+                const string msg = "Keine IPC-Session-UID angegeben.";
                 LocalLog.WriteError(msg);
-                    errorHandler.Handle(msg, null, null);
+                errorHandler.Handle(msg, null, null);
                 return 1;
             }
 
             var sessionStore = new SessionStore(config.SessionStoreConnectionString);
 
-            return await RunServer(sessionKey, sessionStore, config, errorHandler);
+            var getSource = ResolveConfigSource(config);
+            if (!getSource.Succeeded)
+            {
+                var err = getSource.ToResult();
+                LocalLog.WriteError(err);
+                errorHandler.Handle(err, sessionGuid: null);
+                return 1;
+            }
+            var configStore = new ConfigStore(getSource.Value, config.SessionStoreConnectionString);
+
+            return await RunServer(sessionKey, sessionStore, configStore, config, errorHandler);
         }
         catch (Exception ex)
         {
-            var msg = "Unbehandelte Exception im Host.";
+            string msg = "Unbehandelte Exception im Host.";
             LocalLog.WriteError(msg, exceptionDetails: ex.ToString());
             errorHandler.Handle(msg, callStack: null, exceptionDetails: ex.ToString());
             return 1;
@@ -54,13 +70,66 @@ internal static class Host
     }
 
     // -------------------------------------------------------------------------
+    // Config source resolution
+    // -------------------------------------------------------------------------
+
+#pragma warning disable CA1859
+    private static Result<IConfigSource> ResolveConfigSource(IBootstrapConfig config)
+#pragma warning restore CA1859
+    {
+        if (config.ConfigSourceType is null)
+            return new SqlConfigSource(config.SessionStoreConnectionString);
+
+        return LoadAdapterConfigSource(config.ConfigSourceType);
+    }
+
+    private static Result<IConfigSource> LoadAdapterConfigSource(string typeName)
+    {
+        try
+        {
+            var parts = typeName.Split(',', 2, StringSplitOptions.TrimEntries);
+            if (parts.Length != 2)
+                return Result.Error(
+                    $"Ungültiger ConfigSourceType-Wert: '{typeName}'. " +
+                    $"Erwartet: 'FullTypeName, AssemblyName'");
+
+            var assemblyFileName = parts[1] + ".dll";
+            var adaptersFolder   = Path.Combine(AppContext.BaseDirectory, "adapters");
+            var assemblyPath     = Path.Combine(adaptersFolder, assemblyFileName);
+
+            if (!File.Exists(assemblyPath))
+                return Result.Error(
+                    $"Adapter-Assembly nicht gefunden: '{assemblyPath}'. " +
+                    $"Stelle sicher, dass die Assembly im 'adapters/'-Ordner liegt.");
+
+            var alc      = new AdapterLoadContext(assemblyPath);
+            var assembly = alc.LoadFromAssemblyPath(assemblyPath);
+            var type     = assembly.GetType(parts[0]);
+
+            if (type is null)
+                return Result.Error(
+                    $"Adapter-Typ '{parts[0]}' nicht gefunden in '{assemblyPath}'.");
+
+            if (Activator.CreateInstance(type) is not IConfigSource source)
+                return Result.Error(
+                    $"Typ '{parts[0]}' implementiert IConfigSource nicht.");
+
+            return Result<IConfigSource>.Success(source);
+        }
+        catch (Exception ex) { return ex; }
+    }
+
+    // -------------------------------------------------------------------------
     // Server lifecycle
     // -------------------------------------------------------------------------
 
     private static async Task<int> RunServer(
-        Guid sessionKey, SessionStore sessionStore, IBootstrapConfig config, IErrorHandler errorHandler)
+        Guid sessionKey, SessionStore sessionStore, ConfigStore configStore, IBootstrapConfig config, IErrorHandler errorHandler)
     {
-        Console.WriteLine("Starting Server...");
+
+#if DEBUG
+        Console.WriteLine("JAP Server started...");
+#endif        
         var sw = Stopwatch.StartNew();
 
         var getSession = sessionStore.GetSession(sessionKey);
@@ -72,10 +141,10 @@ internal static class Host
             return 1;
         }
 
-        var jobName    = getSession.Value.JobTypeName;
+        var jobName = getSession.Value.JobTypeName;
         var jobExePath = Path.Combine(config.JobRepositoryRoot, jobName + ".exe");
 
-        var japServer        = new JAPServer(sessionStore, sessionKey, jobName, errorHandler);
+        var japServer = new JAPServer(sessionStore, sessionKey, jobName, errorHandler, configStore);
         var dispatcherResult = new JipDispatcher().RegisterAll<IJosynApplicationProtocol>(japServer);
         if (!dispatcherResult.Succeeded)
         {
@@ -88,16 +157,21 @@ internal static class Host
 
         var serverStartArguments = new ServerStartArguments
         {
-            ClientExePath           = jobExePath,
-            ConnectionTimeout       = TimeSpan.FromMinutes(1),
-            HandleStringRequest     = requestStr => HandleRequest(jipDispatcher, requestStr),
-            SessionKey              = sessionKey,
+            ClientExePath = jobExePath,
+            ConnectionTimeout = TimeSpan.FromMinutes(1),
+            HandleStringRequest = requestStr => HandleRequest(jipDispatcher, requestStr),
+            SessionKey = sessionKey,
             HandleErrorNotification = (req, ex) => HandleHandlerError(req, ex, jobName, sessionKey, errorHandler),
         };
 
+#if DEBUG
+        Console.WriteLine("Invoking PipesServer.RunAsync()...");
+#endif                
         var res = await PipesServer.RunAsync(serverStartArguments);
 
+#if DEBUG
         Console.WriteLine($"Finished after {sw.Elapsed}");
+#endif                        
         if (!res.Succeeded)
         {
             LocalLog.WriteError(res);

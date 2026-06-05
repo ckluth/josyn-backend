@@ -57,4 +57,7 @@ public sealed class FileBootstrapConfig : IBootstrapConfig
 
     /// <inheritdoc/>
     public string JobRepositoryRoot => _values[nameof(IBootstrapConfig.JobRepositoryRoot)];
+
+    /// <inheritdoc/>
+    public string? ConfigSourceType => _values.TryGetValue(nameof(IBootstrapConfig.ConfigSourceType), out var v) ? v : null;
 }

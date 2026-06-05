@@ -10,7 +10,7 @@
 		<AssemblyName>JOSYN.Backend.SessionStore</AssemblyName>
 		<RootNamespace>JOSYN.Backend.SessionStore</RootNamespace>
 		<PlatformTarget>AnyCPU</PlatformTarget>
-		<Version>1.0.0-preview02</Version>
+		<Version>1.0.0-preview01</Version>
 		<Company>HAEVG</Company>
 		<Authors>HAEVG SWE</Authors>
 		<Copyright>Copyright © 2026 HAEVG AG</Copyright>

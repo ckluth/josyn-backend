@@ -25,10 +25,6 @@ try
 catch (Exception ex)
 {
     Console.WriteLine(ex);
-}
-finally
-{
-    Console.WriteLine("press any key to exit...");
     Console.ReadKey();
 }
 

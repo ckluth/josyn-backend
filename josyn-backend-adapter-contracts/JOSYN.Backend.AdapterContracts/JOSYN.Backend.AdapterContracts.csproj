@@ -1,32 +1,33 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<OutputType>Exe</OutputType>
+		<OutputType>Library</OutputType>
 		<TargetFramework>net10.0</TargetFramework>
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 		<LangVersion>latest</LangVersion>
-		<AssemblyName>JOSYN.Backend.CLI</AssemblyName>
-		<RootNamespace>JOSYN.Backend.CLI</RootNamespace>
+		<AssemblyName>JOSYN.Backend.AdapterContracts</AssemblyName>
+		<RootNamespace>JOSYN.Backend.AdapterContracts</RootNamespace>
 		<PlatformTarget>AnyCPU</PlatformTarget>
 		<Version>1.0.0-preview01</Version>
 		<Company>HAEVG</Company>
 		<Authors>HAEVG SWE</Authors>
 		<Copyright>Copyright © 2026 HAEVG AG</Copyright>
-		<Description>JOSYN Backend CLI — Manual session start; maintenance, integration testing, demonstration.</Description>
+		<Description>JOSYN Backend AdapterContracts — Shared adapter interfaces for late-bound external integrations (see ADR-009). Only dependency: ResultPattern. Both JOSYN and adapters reference this package.</Description>
+		<PackageId>JOSYN.Backend.AdapterContracts</PackageId>
+		<RepositoryType>git</RepositoryType>
+		<PackageProjectUrl>https://github.com/ckluth/JOSYN</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/ckluth/JOSYN</RepositoryUrl>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 	</PropertyGroup>
 	<ItemGroup>
-		<PackageReference Include="JOSYN.Backend.ErrorHandler"    Version="1.0.0-preview01"/>
-		<PackageReference Include="JOSYN.Backend.BootstrapConfig"   Version="1.0.0-preview01"/>
-		<PackageReference Include="JOSYN.Backend.JobRegistry"     Version="1.0.0-preview01"/>
-		<PackageReference Include="JOSYN.Backend.SessionStarter"  Version="1.0.0-preview01"/>
 		<PackageReference Include="JOSYN.Foundation.ResultPattern" Version="1.0.0-preview01"/>
 	</ItemGroup>
 	<ItemGroup>
 		<None Include="..\..\..\.gitignore" Visible="false"/>
 		<None Include="..\Directory.Build.props" Visible="false"/>
 		<None Include="..\nuget.config" Visible="false"/>
-		<None Include="..\..\josyn.bootstrap.ini" CopyToOutputDirectory="PreserveNewest" Visible="false"/>
 	</ItemGroup>
 </Project>

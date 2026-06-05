@@ -4,16 +4,22 @@ setlocal
 
 set "ROOT=%~dp0.."
 
+call :run_clean "josyn-backend-adapter-contracts"
+if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
+
 call :run_clean "josyn-backend-session-store"
 if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
 
-call :run_clean "josyn-backend-global-config"
+call :run_clean "josyn-backend-config-store"
 if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
 
-call :run_clean "josyn-backend-session-starter"
+call :run_clean "josyn-backend-bootstrap-config"
 if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
 
 call :run_clean "josyn-backend-job-registry"
+if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
+
+call :run_clean "josyn-backend-session-starter"
 if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
 
 call :run_clean "josyn-backend-error-handler"
