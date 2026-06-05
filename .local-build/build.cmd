@@ -29,11 +29,19 @@ if %ERRORLEVEL% neq 0 (
     exit /b %ERRORLEVEL%
 )
 
-echo === JOSYN.Backend.GlobalConfig ===
-dotnet build "%ROOT%\josyn-backend-global-config\JOSYN.Backend.GlobalConfig.slnx" --configuration %CONFIGURATION%
+echo === JOSYN.Backend.ConfigStore ===
+dotnet build "%ROOT%\josyn-backend-config-store\JOSYN.Backend.ConfigStore.slnx" --configuration %CONFIGURATION%
 if %ERRORLEVEL% neq 0 (
     echo.
-    echo [FEHLER] Build fehlgeschlagen: JOSYN.Backend.GlobalConfig. Exit-Code: %ERRORLEVEL%
+    echo [FEHLER] Build fehlgeschlagen: JOSYN.Backend.ConfigStore. Exit-Code: %ERRORLEVEL%
+    exit /b %ERRORLEVEL%
+)
+
+echo === JOSYN.Backend.BootstrapConfig ===
+dotnet build "%ROOT%\josyn-backend-bootstrap-config\JOSYN.Backend.BootstrapConfig.slnx" --configuration %CONFIGURATION%
+if %ERRORLEVEL% neq 0 (
+    echo.
+    echo [FEHLER] Build fehlgeschlagen: JOSYN.Backend.BootstrapConfig. Exit-Code: %ERRORLEVEL%
     exit /b %ERRORLEVEL%
 )
 

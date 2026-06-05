@@ -1,5 +1,5 @@
 using JOSYN.Backend.ErrorHandler;
-using JOSYN.Backend.GlobalConfig;
+using JOSYN.Backend.BootstrapConfig;
 using JOSYN.Backend.SessionStore;
 using JOSYN.Foundation.JIP;
 using JOSYN.Jap.Shared.Contract;
@@ -18,7 +18,7 @@ internal static class Host
         Console.OutputEncoding = new UTF8Encoding();
         LocalLog.EnableConsoleOutput = true;
 #endif
-        var config       = new HardcodedGlobalConfig();
+        var config       = FileBootstrapConfig.Load("josyn.bootstrap.ini").Value!;
         var errorHandler = new SqlErrorHandler(config.SessionStoreConnectionString);
 
         try
@@ -58,7 +58,7 @@ internal static class Host
     // -------------------------------------------------------------------------
 
     private static async Task<int> RunServer(
-        Guid sessionKey, SessionStore sessionStore, IGlobalConfig config, IErrorHandler errorHandler)
+        Guid sessionKey, SessionStore sessionStore, IBootstrapConfig config, IErrorHandler errorHandler)
     {
         Console.WriteLine("Starting Server...");
         var sw = Stopwatch.StartNew();

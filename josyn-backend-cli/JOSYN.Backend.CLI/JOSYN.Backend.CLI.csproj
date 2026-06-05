@@ -18,14 +18,15 @@
 	</PropertyGroup>
 	<ItemGroup>
 		<PackageReference Include="JOSYN.Backend.ErrorHandler"    Version="1.0.0-preview01"/>
-		<PackageReference Include="JOSYN.Backend.GlobalConfig"    Version="1.0.0-preview01"/>
+		<PackageReference Include="JOSYN.Backend.BootstrapConfig"   Version="1.0.0-preview02"/>
 		<PackageReference Include="JOSYN.Backend.JobRegistry"     Version="1.0.0-preview01"/>
-		<PackageReference Include="JOSYN.Backend.SessionStarter"  Version="1.0.0-preview01"/>
+		<PackageReference Include="JOSYN.Backend.SessionStarter"  Version="1.0.0-preview02"/>
 		<PackageReference Include="JOSYN.Foundation.ResultPattern" Version="1.0.0-preview01"/>
 	</ItemGroup>
 	<ItemGroup>
 		<None Include="..\..\..\.gitignore" Visible="false"/>
 		<None Include="..\Directory.Build.props" Visible="false"/>
 		<None Include="..\nuget.config" Visible="false"/>
+		<None Include="..\..\josyn.bootstrap.ini" CopyToOutputDirectory="PreserveNewest" Visible="false"/>
 	</ItemGroup>
 </Project>

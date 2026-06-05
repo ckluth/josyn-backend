@@ -427,3 +427,6 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+# JOSYN bootstrap config — machine-specific, never commit
+josyn.bootstrap.ini

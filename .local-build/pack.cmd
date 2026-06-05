@@ -7,7 +7,10 @@ set "ROOT=%~dp0.."
 call :run_pack "josyn-backend-session-store"
 if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
 
-call :run_pack "josyn-backend-global-config"
+call :run_pack "josyn-backend-config-store"
+if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
+
+call :run_pack "josyn-backend-bootstrap-config"
 if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
 
 call :run_pack "josyn-backend-job-registry"

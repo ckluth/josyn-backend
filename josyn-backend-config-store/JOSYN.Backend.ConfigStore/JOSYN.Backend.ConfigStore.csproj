@@ -7,33 +7,25 @@
 		<IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 		<LangVersion>latest</LangVersion>
-		<AssemblyName>JOSYN.Backend.SessionStarter</AssemblyName>
-		<RootNamespace>JOSYN.Backend.SessionStarter</RootNamespace>
+		<AssemblyName>JOSYN.Backend.ConfigStore</AssemblyName>
+		<RootNamespace>JOSYN.Backend.ConfigStore</RootNamespace>
 		<PlatformTarget>AnyCPU</PlatformTarget>
-		<Version>1.0.0-preview02</Version>
+		<Version>1.0.0-preview01</Version>
 		<Company>HAEVG</Company>
 		<Authors>HAEVG SWE</Authors>
 		<Copyright>Copyright © 2026 HAEVG AG</Copyright>
-		<Description>JOSYN Backend SessionStarter — Session-Lebenszyklus für Job-Ausführungen. Stellt ISessionStarter bereit; persistiert die Session und startet JAPServer.exe.</Description>
-		<PackageId>JOSYN.Backend.SessionStarter</PackageId>
+		<Description>JOSYN Backend ConfigStore — Persistenz-Schicht für JOSYN-Laufzeitkonfiguration. Stellt IConfigStore und IConfigRecord bereit; EF Core-Implementierung gegen SQL Server.</Description>
+		<PackageId>JOSYN.Backend.ConfigStore</PackageId>
 		<RepositoryType>git</RepositoryType>
 		<PackageProjectUrl>https://github.com/ckluth/JOSYN</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/ckluth/JOSYN</RepositoryUrl>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
-		<PackageReadmeFile>README.md</PackageReadmeFile>
-		<PackageIcon>icon.png</PackageIcon>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<NoWarn>$(NoWarn);CS1591</NoWarn>
 	</PropertyGroup>
 	<ItemGroup>
-		<None Include="README.md" Pack="true" PackagePath="\"/>
-		<None Include="icon.png" Pack="true" PackagePath="\"/>
-	</ItemGroup>
-	<ItemGroup>
-		<PackageReference Include="JOSYN.Backend.BootstrapConfig"  Version="1.0.0-preview02"/>
-		<PackageReference Include="JOSYN.Backend.JobRegistry"    Version="1.0.0-preview01"/>
-		<PackageReference Include="JOSYN.Backend.SessionStore"   Version="1.0.0-preview02"/>
-		<PackageReference Include="JOSYN.Foundation.ResultPattern" Version="1.0.0-preview01"/>
+		<PackageReference Include="JOSYN.Foundation.ResultPattern"          Version="1.0.0-preview01"/>
+		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.5"/>
 	</ItemGroup>
 	<ItemGroup>
 		<None Include="..\..\..\.gitignore" Visible="false"/>

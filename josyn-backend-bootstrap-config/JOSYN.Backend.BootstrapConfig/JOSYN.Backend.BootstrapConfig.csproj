@@ -7,15 +7,15 @@
 		<IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 		<LangVersion>latest</LangVersion>
-		<AssemblyName>JOSYN.Backend.GlobalConfig</AssemblyName>
-		<RootNamespace>JOSYN.Backend.GlobalConfig</RootNamespace>
+		<AssemblyName>JOSYN.Backend.BootstrapConfig</AssemblyName>
+		<RootNamespace>JOSYN.Backend.BootstrapConfig</RootNamespace>
 		<PlatformTarget>AnyCPU</PlatformTarget>
-		<Version>1.0.0-preview01</Version>
+		<Version>1.0.0-preview02</Version>
 		<Company>HAEVG</Company>
 		<Authors>HAEVG SWE</Authors>
 		<Copyright>Copyright © 2026 HAEVG AG</Copyright>
-		<Description>JOSYN Backend GlobalConfig — Konfigurationskontrakt für Backend-Komponenten. Stellt IGlobalConfig bereit; HardcodedGlobalConfig ist der PoC-Platzhalter.</Description>
-		<PackageId>JOSYN.Backend.GlobalConfig</PackageId>
+		<Description>JOSYN Backend BootstrapConfig — Startkonfigurationskontrakt für Backend-Komponenten. Stellt IBootstrapConfig bereit; FileBootstrapConfig liest aus josyn.bootstrap.ini.</Description>
+		<PackageId>JOSYN.Backend.BootstrapConfig</PackageId>
 		<RepositoryType>git</RepositoryType>
 		<PackageProjectUrl>https://github.com/ckluth/JOSYN</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/ckluth/JOSYN</RepositoryUrl>
@@ -25,6 +25,9 @@
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<NoWarn>$(NoWarn);CS1591</NoWarn>
 	</PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="JOSYN.Foundation.PropertyBag" Version="1.0.0-preview01"/>
+	</ItemGroup>
 	<ItemGroup>
 		<None Include="README.md" Pack="true" PackagePath="\"/>
 		<None Include="icon.png" Pack="true" PackagePath="\"/>

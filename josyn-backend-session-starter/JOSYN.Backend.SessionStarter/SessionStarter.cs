@@ -1,5 +1,5 @@
 using System.Diagnostics;
-using JOSYN.Backend.GlobalConfig;
+using JOSYN.Backend.BootstrapConfig;
 using JOSYN.Backend.JobRegistry;
 using JOSYN.Backend.SessionStore;
 using JOSYN.Foundation.ResultPattern;
@@ -9,7 +9,7 @@ namespace JOSYN.Backend.SessionStarter;
 /// <inheritdoc/>
 public sealed class SessionStarter(
     ISessionStore sessionStore,
-    IGlobalConfig globalConfig,
+    IBootstrapConfig bootstrapConfig,
     IJobRegistry  jobRegistry) : ISessionStarter
 {
     /// <inheritdoc/>
@@ -19,7 +19,7 @@ public sealed class SessionStarter(
         if (!jobCheck.Succeeded)
             return Result.Error($"Job nicht registriert: '{jobTypeName}'. Bitte zuerst in josyn.JobRegistry eintragen.");
 
-        var exePath = globalConfig.JapServerExePath;
+        var exePath = bootstrapConfig.JapServerExePath;
         if (!File.Exists(exePath))
             return Result.Error($"JAPServer-Executable nicht gefunden: '{exePath}'");
 

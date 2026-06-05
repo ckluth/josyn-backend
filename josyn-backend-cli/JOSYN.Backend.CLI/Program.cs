@@ -1,5 +1,5 @@
 using JOSYN.Backend.ErrorHandler;
-using JOSYN.Backend.GlobalConfig;
+using JOSYN.Backend.BootstrapConfig;
 using JOSYN.Backend.JobRegistry;
 using JOSYN.Backend.SessionStarter;
 using JOSYN.Backend.SessionStore;
@@ -36,7 +36,7 @@ finally
 
 static void HardCodedDemoSessionStart()
 {
-    var config       = new HardcodedGlobalConfig();
+    var config       = FileBootstrapConfig.Load("josyn.bootstrap.ini").Value!;
     var errorHandler = new SqlErrorHandler(config.SessionStoreConnectionString);
     var sessionStore = new SessionStore(config.SessionStoreConnectionString);
     var jobRegistry  = new SqlJobRegistry(config.SessionStoreConnectionString);
