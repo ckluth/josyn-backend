@@ -5,18 +5,13 @@ using JOSYN.Backend.SessionStarter;
 using JOSYN.Backend.SessionStore;
 
 // Hardcoded demo values — replace with real inputs once CLI arg parsing is added.
-const string DemoJobTypeName = "MyDemoCompany.MyDemoProduct.MyDemoJob";
+const string DemoJobTypeName = "Contoso.DemoProduct.DemoJob";
 const string DemoArguments   =
-    "Msg=Hallo JOSYN\n" +
-    "Count=5\n" +
-    "MaybeCount=\n" +
-    "IsSpecial=True\n" +
-    "OnlyDate=01.07.2025\n" +
-    "Expired=01.06.2025 08:00:00\n" +
-    "MaybeDateTime=\n" +
-    "EnumValue=Value2\n" +
-    "MyTimeSpan=00:01:30\n" +
-    "Price=19,99\n";
+    "Message=Hallo JOSYN\n" +
+    "RepeatCount=3\n" +
+    "ScheduledFor=06.06.2025\n" +
+    "IsHighPriority=False\n" +
+    "Budget=1499,99\n";
 
 try
 {

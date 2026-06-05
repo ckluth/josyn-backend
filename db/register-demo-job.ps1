@@ -2,7 +2,7 @@
 # Temporary demo script — registers MyDemoCompany.MyDemoProduct.MyDemoJob in josyn.JobRegistry.
 # Run via register-demo-job.cmd.
 
-$jobTypeName  = "MyDemoCompany.MyDemoProduct.MyDemoJob"
+$jobTypeName  = "Contoso.DemoProduct.DemoJob"
 $techUser     = "tu.josyn"
 
 $sql = @"
