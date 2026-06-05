@@ -3,7 +3,7 @@ using JOSYN.Backend.GlobalConfig;
 using JOSYN.Backend.SessionStore;
 using JOSYN.Foundation.JIP;
 using JOSYN.Jap.Shared.Contract;
-using JOSYN.Jap.Shared.Log;
+using JOSYN.Commons.Log;
 using System.Diagnostics;
 using System.Text;
 
@@ -13,14 +13,13 @@ internal static class Host
 {
     internal static async Task<int> Run(string[] args)
     {
-        
 #if DEBUG
         Console.InputEncoding = new UTF8Encoding();
         Console.OutputEncoding = new UTF8Encoding();
         LocalLog.EnableConsoleOutput = true;
 #endif
-        var config = new HardcodedGlobalConfig();
-        var errorHandler = new FileSystemErrorHandler(config);
+        var config       = new HardcodedGlobalConfig();
+        var errorHandler = new SqlErrorHandler(config.SessionStoreConnectionString);
 
         try
         {
@@ -30,7 +29,7 @@ internal static class Host
             {
                 var msg = "Keine IPC-Session-UID angegeben.";
                 LocalLog.WriteError(msg);
-                errorHandler.Handle(msg);
+                    errorHandler.Handle(msg, null, null);
                 return 1;
             }
 
@@ -42,7 +41,7 @@ internal static class Host
         {
             var msg = "Unbehandelte Exception im Host.";
             LocalLog.WriteError(msg, exceptionDetails: ex.ToString());
-            errorHandler.Handle(msg, ex);
+            errorHandler.Handle(msg, callStack: null, exceptionDetails: ex.ToString());
             return 1;
         }
         finally
@@ -69,29 +68,31 @@ internal static class Host
         {
             var msg = $"Session nicht gefunden: {sessionKey}";
             LocalLog.WriteError(msg);
-            errorHandler.Handle(msg);
+            errorHandler.Handle(getSession.ToResult(), sessionGuid: sessionKey);
             return 1;
         }
 
-        var jobExePath = Path.Combine(config.JobRepositoryRoot, getSession.Value.JobTypeName + ".exe");
+        var jobName    = getSession.Value.JobTypeName;
+        var jobExePath = Path.Combine(config.JobRepositoryRoot, jobName + ".exe");
 
-        var japServer        = new JAPServer(sessionStore, sessionKey);
+        var japServer        = new JAPServer(sessionStore, sessionKey, jobName, errorHandler);
         var dispatcherResult = new JipDispatcher().RegisterAll<IJosynApplicationProtocol>(japServer);
         if (!dispatcherResult.Succeeded)
         {
-            LocalLog.WriteError(dispatcherResult.ToResult());
-            errorHandler.Handle(dispatcherResult.ToResult().ErrorMessage ?? "JipDispatcher-Fehler.");
+            var err = dispatcherResult.ToResult();
+            LocalLog.WriteError(err);
+            errorHandler.Handle(err, jobName: jobName, sessionGuid: sessionKey);
             return 1;
         }
         var jipDispatcher = dispatcherResult.Value;
 
         var serverStartArguments = new ServerStartArguments
         {
-            ClientExePath        = jobExePath,
-            ConnectionTimeout    = TimeSpan.FromMinutes(1),
-            HandleStringRequest  = requestStr => HandleRequest(jipDispatcher, requestStr),
-            SessionKey           = sessionKey,
-            HandleErrorNotification = (req, ex) => HandleHandlerError(req, ex, errorHandler),
+            ClientExePath           = jobExePath,
+            ConnectionTimeout       = TimeSpan.FromMinutes(1),
+            HandleStringRequest     = requestStr => HandleRequest(jipDispatcher, requestStr),
+            SessionKey              = sessionKey,
+            HandleErrorNotification = (req, ex) => HandleHandlerError(req, ex, jobName, sessionKey, errorHandler),
         };
 
         var res = await PipesServer.RunAsync(serverStartArguments);
@@ -100,7 +101,7 @@ internal static class Host
         if (!res.Succeeded)
         {
             LocalLog.WriteError(res);
-            errorHandler.Handle(res.ErrorMessage ?? "PipesServer-Fehler.");
+            errorHandler.Handle(res, jobName: jobName, sessionGuid: sessionKey);
             return 1;
         }
 
@@ -120,11 +121,12 @@ internal static class Host
         return responseStr;
     }
 
-    private static async Task HandleHandlerError(string request, Exception ex, IErrorHandler errorHandler)
+    private static async Task HandleHandlerError(
+        string request, Exception ex, string jobName, Guid sessionGuid, IErrorHandler errorHandler)
     {
         var msg = $"Fehler beim Verarbeiten der Anfrage: {request}";
         LocalLog.WriteError(msg, exceptionDetails: ex.ToString());
-        errorHandler.Handle(msg, ex);
+        errorHandler.Handle(msg, callStack: null, exceptionDetails: ex.ToString(), jobName: jobName, sessionGuid: sessionGuid);
         await Task.CompletedTask;
     }
 }

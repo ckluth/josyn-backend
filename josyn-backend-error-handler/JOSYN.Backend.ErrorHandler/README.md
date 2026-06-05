@@ -1,28 +1,47 @@
 # JOSYN.Backend.ErrorHandler
 
 Platform-wide error reporting endpoint for the JOSYN backend.
+See [ADR-006](../../../josyn-platform/repos/josyn-backend/decisions/ADR-006-error-handler.md) for full rationale.
 
 ## Contract
 
-`IErrorHandler` — receives error reports from any backend component:
+`IErrorHandler` — fire-and-forget; never throws; callers are unaware of persistence failures.
 
 ```csharp
-void Handle(string message);
-void Handle(string message, Exception exception);
+void Handle(
+    string   message,
+    string?  callStack        = null,
+    string?  exceptionDetails = null,
+    string?  jobName          = null,
+    Guid?    sessionGuid      = null,
+    [CallerMemberName] string caller = "");
 ```
 
-## First version
+## Error record
 
-`FileSystemErrorHandler` writes a timestamped entry to `Console.Error` and appends it to
-`%TEMP%\josyn-error.log`. Notification and durable storage are deferred.
+`IErrorRecord` / `ErrorRecord` — stored in `josyn.ErrorStore` (JOSYN Storage Realm).
 
-## Known limitations
+Error kind is inferred from nullable context fields:
 
-- Log path is hard-coded (`Path.GetTempPath()`). Will be moved to `IGlobalConfig` when a
-  log-path property is added.
-- No notification mechanism yet. Operator must monitor the log file manually.
+| `JobName` | `SessionGuid` | Kind |
+|-----------|---------------|------|
+| `null`    | `null`        | System error |
+| set       | `null`        | Job error, no session |
+| set       | set           | Job error, with session |
+
+## Production implementation
+
+`SqlErrorHandler(string connectionString)` — persists to `josyn.ErrorStore` via EF Core.
+Falls back to `LocalLog` (`JOSYN.Commons.Log`) when SQL storage is unavailable.
+
+## Placement rule
+
+Backend-only. Called at every point where a `Result` chain terminates without a further
+caller, and when `PutError` arrives from a job via IPC.
+`job.exe` cannot reference this package — `PutError` over JIP is the bridge.
 
 ## Dependencies
 
-- `JOSYN.Backend.GlobalConfig` — accepted in constructor; reserved for future log-path use
-- `JOSYN.Foundation.ResultPattern` — platform infrastructure baseline
+- `JOSYN.Commons.Log` — LocalLog fallback
+- `JOSYN.Foundation.ResultPattern` — platform baseline
+- `Microsoft.EntityFrameworkCore.SqlServer` — storage implementation

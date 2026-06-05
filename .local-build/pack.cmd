@@ -10,10 +10,10 @@ if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
 call :run_pack "josyn-backend-global-config"
 if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
 
-call :run_pack "josyn-backend-session-starter"
+call :run_pack "josyn-backend-job-registry"
 if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
 
-call :run_pack "josyn-backend-job-registry"
+call :run_pack "josyn-backend-session-starter"
 if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
 
 call :run_pack "josyn-backend-error-handler"

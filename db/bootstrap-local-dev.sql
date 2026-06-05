@@ -78,3 +78,44 @@ ALTER TABLE [josyn].[SessionStore]
     ADD CONSTRAINT [FK_SessionStore_JobRegistry]
     FOREIGN KEY ([JobTypeName]) REFERENCES [josyn].[JobRegistry] ([Name]);
 GO
+
+-- ── V003 — josyn.ErrorStore ─────────────────────────────────
+-- No FKs to JobRegistry or SessionStore: error records are
+-- archival and must outlive the entities they reference.
+CREATE TABLE [josyn].[ErrorStore]
+(
+    [Id]               INT              NOT NULL IDENTITY(1,1),
+    [UID]              UNIQUEIDENTIFIER NOT NULL DEFAULT NEWSEQUENTIALID(),
+    [OccurredAt]       DATETIMEOFFSET   NOT NULL,
+    [Causer]           NVARCHAR(256)    NOT NULL,
+    [Message]          NVARCHAR(MAX)    NOT NULL,
+    [CallStack]        NVARCHAR(MAX)    NULL,
+    [ExceptionDetails] NVARCHAR(MAX)    NULL,
+    [JobName]          NVARCHAR(256)    NULL,
+    [SessionGuid]      UNIQUEIDENTIFIER NULL,
+
+    CONSTRAINT [PK_ErrorStore]     PRIMARY KEY CLUSTERED ([Id]),
+    CONSTRAINT [UQ_ErrorStore_UID] UNIQUE ([UID])
+);
+GO
+
+CREATE INDEX [IX_ErrorStore_OccurredAt]
+    ON [josyn].[ErrorStore] ([OccurredAt] DESC);
+GO
+
+CREATE INDEX [IX_ErrorStore_JobName]
+    ON [josyn].[ErrorStore] ([JobName])
+    WHERE [JobName] IS NOT NULL;
+GO
+
+CREATE INDEX [IX_ErrorStore_SessionGuid]
+    ON [josyn].[ErrorStore] ([SessionGuid])
+    WHERE [SessionGuid] IS NOT NULL;
+GO
+
+-- ── Dev seed data ────────────────────────────────────────────
+-- Registers the CLI demo job so bootstrap-local-dev is
+-- immediately usable without a manual INSERT.
+INSERT INTO [josyn].[JobRegistry] ([Name], [TechnicalUserName])
+VALUES ('MyDemoCompany.MyDemoProduct.MyDemoJob', 'tu.josyn');
+GO

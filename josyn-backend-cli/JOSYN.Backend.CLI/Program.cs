@@ -1,5 +1,6 @@
 using JOSYN.Backend.ErrorHandler;
 using JOSYN.Backend.GlobalConfig;
+using JOSYN.Backend.JobRegistry;
 using JOSYN.Backend.SessionStarter;
 using JOSYN.Backend.SessionStore;
 
@@ -36,9 +37,10 @@ finally
 static void HardCodedDemoSessionStart()
 {
     var config       = new HardcodedGlobalConfig();
-    var errorHandler = new FileSystemErrorHandler(config);
+    var errorHandler = new SqlErrorHandler(config.SessionStoreConnectionString);
     var sessionStore = new SessionStore(config.SessionStoreConnectionString);
-    var starter      = new SessionStarter(sessionStore, config);
+    var jobRegistry  = new SqlJobRegistry(config.SessionStoreConnectionString);
+    var starter      = new SessionStarter(sessionStore, config, jobRegistry);
 
     Console.WriteLine("Starting demo session...");
     Console.WriteLine($"  JobTypeName : {DemoJobTypeName}");
@@ -53,7 +55,7 @@ static void HardCodedDemoSessionStart()
         Console.ForegroundColor = ConsoleColor.Red;
         Console.WriteLine(msg);
         Console.ResetColor();
-        errorHandler.Handle(msg);
+        errorHandler.Handle(result.ToResult());
         return;
     }
 
