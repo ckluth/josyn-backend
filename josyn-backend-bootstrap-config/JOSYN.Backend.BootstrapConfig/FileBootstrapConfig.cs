@@ -13,16 +13,20 @@ namespace JOSYN.Backend.BootstrapConfig;
 /// </remarks>
 public sealed class FileBootstrapConfig : IBootstrapConfig
 {
+    /// <summary>The conventional filename of the bootstrap configuration file.</summary>
+    public const string FileName = "josyn.bootstrap.ini";
     private static readonly string[] RequiredKeys =
     [
         nameof(IBootstrapConfig.SessionStoreConnectionString),
-        nameof(IBootstrapConfig.JapServerExePath),
-        nameof(IBootstrapConfig.JobRepositoryRoot),
     ];
 
     private readonly Dictionary<string, string> _values;
 
-    private FileBootstrapConfig(Dictionary<string, string> values) => _values = values;
+    private FileBootstrapConfig(string backendRoot, Dictionary<string, string> values)
+    {
+        BackendRoot = backendRoot;
+        _values     = values;
+    }
 
     /// <summary>
     /// Loads and validates bootstrap configuration from the specified INI file path.
@@ -35,6 +39,10 @@ public sealed class FileBootstrapConfig : IBootstrapConfig
             if (!File.Exists(path))
                 return Result.Error($"Bootstrap-Konfigurationsdatei nicht gefunden: '{path}'");
 
+            var backendRoot = Path.GetDirectoryName(Path.GetFullPath(path));
+            if (backendRoot is null)
+                return Result.Error($"BackendRoot konnte nicht aus Pfad abgeleitet werden: '{path}'");
+
             var raw    = File.ReadAllText(path);
             var parsed = IniDictionarySerializer.DeserializeSingleSection(raw);
             if (!parsed.Succeeded)
@@ -44,19 +52,16 @@ public sealed class FileBootstrapConfig : IBootstrapConfig
             if (missing.Length > 0)
                 return Result.Error($"Fehlende Schlüssel in '{path}': {string.Join(", ", missing)}");
 
-            return new FileBootstrapConfig(parsed.Value);
+            return new FileBootstrapConfig(backendRoot, parsed.Value);
         }
         catch (Exception ex) { return ex; }
     }
 
     /// <inheritdoc/>
+    public string BackendRoot { get; }
+
+    /// <inheritdoc/>
     public string SessionStoreConnectionString => _values[nameof(IBootstrapConfig.SessionStoreConnectionString)];
-
-    /// <inheritdoc/>
-    public string JapServerExePath => _values[nameof(IBootstrapConfig.JapServerExePath)];
-
-    /// <inheritdoc/>
-    public string JobRepositoryRoot => _values[nameof(IBootstrapConfig.JobRepositoryRoot)];
 
     /// <inheritdoc/>
     public string? ConfigSourceType => _values.TryGetValue(nameof(IBootstrapConfig.ConfigSourceType), out var v) ? v : null;

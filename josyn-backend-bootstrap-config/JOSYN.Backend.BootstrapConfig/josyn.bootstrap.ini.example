@@ -6,6 +6,4 @@
 ; -------------------------------------------------------
 
 SessionStoreConnectionString=Server=localhost\SQLEXPRESS01;Database=josyn-db-local;User Id=tu.josyn;Password=josyn;TrustServerCertificate=True;
-JapServerExePath=C:\Temp\VS.OUT\JOSYN\JOSYN.Jap.JAPServer\bin\Release\JOSYN.Jap.JAPServer.exe
-JobRepositoryRoot=C:\Temp\VS.OUT\JOSYN\MyDemoCompany.MyDemoProduct.MyDemoJob\bin\Debug
 ; ConfigSourceType=HAEVG.Josyn.Adapter.HaevgConfigSource, HAEVG.Josyn.Adapter

@@ -21,7 +21,14 @@ internal static class Host
         Console.OutputEncoding = new UTF8Encoding();
         LocalLog.EnableConsoleOutput = true;
 #endif
-        var config = FileBootstrapConfig.Load("josyn.bootstrap.ini").Value!;
+        var loadConfig = FileBootstrapConfig.Load(Path.Combine(AppContext.BaseDirectory, "..", FileBootstrapConfig.FileName));
+        if (!loadConfig.Succeeded)
+        {
+            LocalLog.WriteError(loadConfig.ErrorMessage);
+            Console.Error.WriteLine($"Bootstrap-Konfiguration konnte nicht geladen werden: {loadConfig.ErrorMessage}");
+            return 1;
+        }
+        var config = loadConfig.Value;
         var errorHandler = new SqlErrorHandler(config.SessionStoreConnectionString);
 
         try
@@ -94,13 +101,13 @@ internal static class Host
                     $"Erwartet: 'FullTypeName, AssemblyName'");
 
             var assemblyFileName = parts[1] + ".dll";
-            var adaptersFolder   = Path.Combine(AppContext.BaseDirectory, "adapters");
+            var adaptersFolder   = Path.Combine(AppContext.BaseDirectory, "Adapters");
             var assemblyPath     = Path.Combine(adaptersFolder, assemblyFileName);
 
             if (!File.Exists(assemblyPath))
                 return Result.Error(
                     $"Adapter-Assembly nicht gefunden: '{assemblyPath}'. " +
-                    $"Stelle sicher, dass die Assembly im 'adapters/'-Ordner liegt.");
+                    $"Stelle sicher, dass die Assembly im 'Adapters/'-Ordner liegt.");
 
             var alc      = new AdapterLoadContext(assemblyPath);
             var assembly = alc.LoadFromAssemblyPath(assemblyPath);
@@ -141,8 +148,8 @@ internal static class Host
             return 1;
         }
 
-        var jobName = getSession.Value.JobTypeName;
-        var jobExePath = Path.Combine(config.JobRepositoryRoot, jobName, jobName + ".exe");
+        var jobName    = getSession.Value.JobTypeName;
+        var jobExePath = Path.Combine(config.BackendRoot, "JobRepository", jobName, jobName + ".exe");
 
         var japServer = new JAPServer(sessionStore, sessionKey, jobName, errorHandler, configStore);
         var dispatcherResult = new JipDispatcher().RegisterAll<IJosynApplicationProtocol>(japServer);

@@ -13,23 +13,21 @@ namespace JOSYN.Backend.BootstrapConfig;
 /// </remarks>
 public interface IBootstrapConfig
 {
+    /// <summary>
+    /// Absolute path to the backend installation root — the directory containing
+    /// <c>josyn.bootstrap.ini</c>. All other deployment paths derive from this root
+    /// by convention (see ADR-012).
+    /// </summary>
+    string BackendRoot { get; }
+
     /// <summary>ADO.NET connection string for the session store database.</summary>
     string SessionStoreConnectionString { get; }
-
-    /// <summary>Absolute path to the <c>JOSYN.Jap.JAPServer.exe</c> binary.</summary>
-    string JapServerExePath { get; }
-
-    /// <summary>
-    /// Absolute path to the directory that contains job executables.
-    /// Convention: each job exe is named <c>{JobTypeName}.exe</c>.
-    /// </summary>
-    string JobRepositoryRoot { get; }
 
     /// <summary>
     /// Fully qualified type name of the <c>IConfigSource</c> adapter to load at startup,
     /// in the format <c>TypeName, AssemblyName</c>.
     /// When <see langword="null"/>, the built-in <c>SqlConfigSource</c> is used.
-    /// The adapter assembly must be present in the <c>adapters/</c> subfolder next to the backend executable.
+    /// The adapter assembly must be present in the <c>Adapters/</c> subfolder next to the backend executable.
     /// </summary>
     string? ConfigSourceType { get; }
 }

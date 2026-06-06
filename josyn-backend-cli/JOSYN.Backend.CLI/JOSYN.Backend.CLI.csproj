@@ -27,6 +27,5 @@
 		<None Include="..\..\..\.gitignore" Visible="false"/>
 		<None Include="..\Directory.Build.props" Visible="false"/>
 		<None Include="..\nuget.config" Visible="false"/>
-		<None Include="..\..\josyn.bootstrap.ini" CopyToOutputDirectory="PreserveNewest" Visible="false"/>
 	</ItemGroup>
 </Project>

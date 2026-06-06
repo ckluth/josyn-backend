@@ -8,10 +8,19 @@ namespace JOSYN.Backend.SessionStarter;
 
 /// <inheritdoc/>
 public sealed class SessionStarter(
-    ISessionStore sessionStore,
+    ISessionStore    sessionStore,
     IBootstrapConfig bootstrapConfig,
-    IJobRegistry  jobRegistry) : ISessionStarter
+    IJobRegistry     jobRegistry) : ISessionStarter
 {
+    private readonly IBootstrapConfig _bootstrapConfig = bootstrapConfig;
+    /// <summary>
+    /// Resolves the JAPServer executable path by convention:
+    /// <c>BackendRoot\JAPServer\JOSYN.Jap.JAPServer.exe</c>,
+    /// where BackendRoot is the directory containing <c>josyn.bootstrap.ini</c> (ADR-012).
+    /// </summary>
+    private string JapServerExePath =>
+        Path.Combine(_bootstrapConfig.BackendRoot, "JAPServer", "JOSYN.Jap.JAPServer.exe");
+
     /// <inheritdoc/>
     public Result<Guid> StartSession(string jobTypeName, string arguments)
     {
@@ -19,7 +28,7 @@ public sealed class SessionStarter(
         if (!jobCheck.Succeeded)
             return Result.Error($"Job nicht registriert: '{jobTypeName}'. Bitte zuerst in josyn.JobRegistry eintragen.");
 
-        var exePath = bootstrapConfig.JapServerExePath;
+        var exePath = JapServerExePath;
         if (!File.Exists(exePath))
             return Result.Error($"JAPServer-Executable nicht gefunden: '{exePath}'");
 

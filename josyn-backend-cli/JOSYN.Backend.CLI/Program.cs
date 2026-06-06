@@ -27,7 +27,16 @@ catch (Exception ex)
 
 static void HardCodedDemoSessionStart()
 {
-    var config       = FileBootstrapConfig.Load("josyn.bootstrap.ini").Value!;
+    var loadConfig   = FileBootstrapConfig.Load(Path.Combine(AppContext.BaseDirectory, "..", FileBootstrapConfig.FileName));
+    if (!loadConfig.Succeeded)
+    {
+        Console.ForegroundColor = ConsoleColor.Red;
+        Console.WriteLine($"Bootstrap-Konfiguration konnte nicht geladen werden: {loadConfig.ErrorMessage}");
+        Console.ResetColor();
+        Console.ReadKey();
+        return;
+    }
+    var config       = loadConfig.Value;
     var errorHandler = new SqlErrorHandler(config.SessionStoreConnectionString);
     var sessionStore = new SessionStore(config.SessionStoreConnectionString);
     var jobRegistry  = new SqlJobRegistry(config.SessionStoreConnectionString);
