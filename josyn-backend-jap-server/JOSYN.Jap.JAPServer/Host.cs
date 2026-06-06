@@ -41,7 +41,6 @@ internal static class Host
             if (sessionKey == Guid.Empty)
             {
                 const string msg = "Keine IPC-Session-UID angegeben.";
-                LocalLog.WriteError(msg);
                 errorHandler.Handle(msg, null, null);
                 return 1;
             }
@@ -52,7 +51,6 @@ internal static class Host
             if (!getSource.Succeeded)
             {
                 var err = getSource.ToResult();
-                LocalLog.WriteError(err);
                 errorHandler.Handle(err, sessionGuid: null);
                 return 1;
             }
@@ -63,7 +61,6 @@ internal static class Host
         catch (Exception ex)
         {
             string msg = "Unbehandelte Exception im Host.";
-            LocalLog.WriteError(msg, exceptionDetails: ex.ToString());
             errorHandler.Handle(msg, callStack: null, exceptionDetails: ex.ToString());
             return 1;
         }
@@ -142,8 +139,6 @@ internal static class Host
         var getSession = sessionStore.GetSession(sessionKey);
         if (!getSession.Succeeded)
         {
-            var msg = $"Session nicht gefunden: {sessionKey}";
-            LocalLog.WriteError(msg);
             errorHandler.Handle(getSession.ToResult(), sessionGuid: sessionKey);
             return 1;
         }
@@ -156,7 +151,6 @@ internal static class Host
         if (!dispatcherResult.Succeeded)
         {
             var err = dispatcherResult.ToResult();
-            LocalLog.WriteError(err);
             errorHandler.Handle(err, jobName: jobName, sessionGuid: sessionKey);
             return 1;
         }
@@ -181,7 +175,6 @@ internal static class Host
 #endif                        
         if (!res.Succeeded)
         {
-            LocalLog.WriteError(res);
             errorHandler.Handle(res, jobName: jobName, sessionGuid: sessionKey);
             return 1;
         }
@@ -206,7 +199,6 @@ internal static class Host
         string request, Exception ex, string jobName, Guid sessionGuid, IErrorHandler errorHandler)
     {
         var msg = $"Fehler beim Verarbeiten der Anfrage: {request}";
-        LocalLog.WriteError(msg, exceptionDetails: ex.ToString());
         errorHandler.Handle(msg, callStack: null, exceptionDetails: ex.ToString(), jobName: jobName, sessionGuid: sessionGuid);
         await Task.CompletedTask;
     }

@@ -4,7 +4,6 @@ using JOSYN.Backend.SessionStore;
 using JOSYN.Foundation.PropertyBag;
 using JOSYN.Foundation.ResultPattern;
 using JOSYN.Jap.Shared.Contract;
-using JOSYN.Commons.Log;
 
 namespace JOSYN.Jap.JAPServer;
 
@@ -56,11 +55,10 @@ internal sealed class JAPServer(
         var deserialize = PropertyBag.Deserialize<ErrorReport>(serializedError);
         if (!deserialize.Succeeded)
         {
-            LocalLog.WriteError($"ErrorReport konnte nicht deserialisiert werden: {deserialize.ErrorMessage}\nRaw: {serializedError}");
+            errorHandler.Handle(deserialize.ToResult(), jobName: jobName, sessionGuid: sessionGuid);
             return Task.FromResult(Result.Propagate(deserialize.ToResult()));
         }
         var report = deserialize.Value;
-        LocalLog.WriteError(report.Causer, report.Message, report.CallStack, report.ExceptionDetails);
         errorHandler.Handle(
             report.Message,
             report.CallStack,
