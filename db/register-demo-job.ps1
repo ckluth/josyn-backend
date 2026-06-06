@@ -2,6 +2,8 @@
 # Temporary demo script — registers MyDemoCompany.MyDemoProduct.MyDemoJob in josyn.JobRegistry.
 # Run via register-demo-job.cmd.
 
+. "$PSScriptRoot\db-config.ps1"
+
 $jobTypeName  = "Contoso.DemoProduct.DemoJob"
 $techUser     = "tu.josyn"
 
@@ -18,6 +20,6 @@ ELSE
 $tempSql = [System.IO.Path]::GetTempFileName() + ".sql"
 $sql | Set-Content -Encoding UTF8 $tempSql
 
-sqlcmd -S "localhost\SQLEXPRESS01" -d "josyn-db-local" -U "tu.josyn" -P "josyn" -i $tempSql
+sqlcmd -S $DbServer -d $DbDatabase -U $DbUser -P $DbPassword -i $tempSql
 
 Remove-Item $tempSql -ErrorAction SilentlyContinue

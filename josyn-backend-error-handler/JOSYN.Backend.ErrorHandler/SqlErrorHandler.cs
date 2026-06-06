@@ -18,13 +18,15 @@ public sealed class SqlErrorHandler(string connectionString) : IErrorHandler
         string? exceptionDetails,
         string? jobName          = null,
         Guid?   sessionGuid      = null,
-        [CallerMemberName] string caller = "")
+        [CallerMemberName] string caller     = "",
+        [CallerFilePath]   string callerFile = "")
     {
+        var causer = BuildCauser(callerFile, caller);
         var record = new ErrorStoreEntity
         {
             UID              = Guid.NewGuid(),
             OccurredAt       = DateTimeOffset.Now,
-            Causer           = caller,
+            Causer           = causer,
             Message          = message,
             CallStack        = callStack,
             ExceptionDetails = exceptionDetails,
@@ -42,7 +44,7 @@ public sealed class SqlErrorHandler(string connectionString) : IErrorHandler
         {
             // Primary storage failed — fall back to local log.
             LocalLog.WriteError(
-                caller,
+                causer,
                 message,
                 callStack,
                 exceptionDetails);
@@ -54,12 +56,29 @@ public sealed class SqlErrorHandler(string connectionString) : IErrorHandler
         Result  result,
         string? jobName     = null,
         Guid?   sessionGuid = null,
-        [CallerMemberName] string caller = "")
+        [CallerMemberName] string caller     = "",
+        [CallerFilePath]   string callerFile = "")
         => Handle(
             result.ErrorMessage ?? "(kein Fehlertext)",
             result.CallStackAsString,
             result.Exception?.ToString(),
             jobName,
             sessionGuid,
-            caller);
+            caller,
+            callerFile);
+
+    private static string BuildCauser(string filePath, string memberName)
+    {
+        if (string.IsNullOrEmpty(filePath))
+            return memberName;
+
+        var parts      = filePath.Replace('/', '\\').Split('\\');
+        var josynIndex = Array.FindIndex(parts, p => p.StartsWith("JOSYN.", StringComparison.Ordinal));
+        if (josynIndex < 0)
+            return memberName;
+
+        var segments   = parts[josynIndex..];
+        segments[^1]   = Path.GetFileNameWithoutExtension(segments[^1]);
+        return string.Join('.', segments) + "." + memberName;
+    }
 }

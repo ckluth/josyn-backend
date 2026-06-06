@@ -20,7 +20,7 @@ public interface IErrorHandler
     /// prevent silent loss of diagnostic context. Pass <c>null</c> explicitly when genuinely
     /// unavailable — this is a deliberate acknowledgement, not an oversight.
     /// When a <see cref="Result"/> is in scope, prefer the
-    /// <see cref="Handle(Result, string?, Guid?, string)"/> overload instead.
+    /// <see cref="Handle(Result, string?, Guid?, string, string)"/> overload instead.
     /// </para>
     /// </summary>
     /// <param name="message">Human-readable error description.</param>
@@ -29,13 +29,15 @@ public interface IErrorHandler
     /// <param name="jobName">Job name if error is job-related; <c>null</c> for system errors.</param>
     /// <param name="sessionGuid">Session GUID if established; <c>null</c> otherwise.</param>
     /// <param name="caller">Automatically captured — do not provide explicitly.</param>
+    /// <param name="callerFile">Automatically captured — do not provide explicitly.</param>
     void Handle(
         string   message,
         string?  callStack,
         string?  exceptionDetails,
         string?  jobName        = null,
         Guid?    sessionGuid    = null,
-        [CallerMemberName] string caller = "");
+        [CallerMemberName] string caller     = "",
+        [CallerFilePath]   string callerFile = "");
 
     /// <summary>
     /// Reports an error from a <see cref="Result"/>, extracting all diagnostic context automatically.
@@ -45,9 +47,11 @@ public interface IErrorHandler
     /// <param name="jobName">Job name if error is job-related; <c>null</c> for system errors.</param>
     /// <param name="sessionGuid">Session GUID if established; <c>null</c> otherwise.</param>
     /// <param name="caller">Automatically captured — do not provide explicitly.</param>
+    /// <param name="callerFile">Automatically captured — do not provide explicitly.</param>
     void Handle(
         Result   result,
         string?  jobName     = null,
         Guid?    sessionGuid = null,
-        [CallerMemberName] string caller = "");
+        [CallerMemberName] string caller     = "",
+        [CallerFilePath]   string callerFile = "");
 }

@@ -2,6 +2,8 @@
 # Inserts or updates a key/value pair in josyn.ConfigStore.
 # Run via insert-config-value.cmd.
 
+. "$PSScriptRoot\db-config.ps1"
+
 $key   = "RuntimeEnvironment"
 $value = "DEV"
 
@@ -21,6 +23,6 @@ END
 $tempSql = [System.IO.Path]::GetTempFileName() + ".sql"
 $sql | Set-Content -Encoding UTF8 $tempSql
 
-sqlcmd -S "localhost\SQLEXPRESS01" -d "josyn-db-local" -U "tu.josyn" -P "josyn" -i $tempSql
+sqlcmd -S $DbServer -d $DbDatabase -U $DbUser -P $DbPassword -i $tempSql
 
 Remove-Item $tempSql -ErrorAction SilentlyContinue

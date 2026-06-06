@@ -142,7 +142,7 @@ internal static class Host
         }
 
         var jobName = getSession.Value.JobTypeName;
-        var jobExePath = Path.Combine(config.JobRepositoryRoot, jobName + ".exe");
+        var jobExePath = Path.Combine(config.JobRepositoryRoot, jobName, jobName + ".exe");
 
         var japServer = new JAPServer(sessionStore, sessionKey, jobName, errorHandler, configStore);
         var dispatcherResult = new JipDispatcher().RegisterAll<IJosynApplicationProtocol>(japServer);
