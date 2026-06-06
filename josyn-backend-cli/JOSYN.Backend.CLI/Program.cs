@@ -4,63 +4,68 @@ using JOSYN.Backend.JobRegistry;
 using JOSYN.Backend.SessionStarter;
 using JOSYN.Backend.SessionStore;
 
-// Hardcoded demo values — replace with real inputs once CLI arg parsing is added.
-const string DemoJobTypeName = "Contoso.DemoProduct.DemoJob";
-const string DemoArguments   =
-    "Message=Hallo JOSYN\n" +
-    "RepeatCount=3\n" +
-    "ScheduledFor=06.06.2025\n" +
-    "IsHighPriority=False\n" +
-    "Budget=1499,99\n";
-
-try
-{
-    HardCodedDemoSessionStart();
-}
-catch (Exception ex)
-{
-    Console.WriteLine(ex);
-    Console.ReadKey();
-}
+return RunJob(args);
 
 // -------------------------------------------------------------------------
 
-static void HardCodedDemoSessionStart()
+static int RunJob(string[] args)
 {
-    var loadConfig   = FileBootstrapConfig.Load(Path.Combine(AppContext.BaseDirectory, "..", FileBootstrapConfig.FileName));
+    if (args.Length < 2 || !string.Equals(args[0], "run-job", StringComparison.OrdinalIgnoreCase))
+    {
+        Console.Error.WriteLine("Verwendung: JOSYN.Backend.CLI.exe run-job <jobname> [<argumentdatei>]");
+        return 1;
+    }
+
+    var jobTypeName = args[1];
+    var arguments   = string.Empty;
+
+    if (args.Length >= 3)
+    {
+        var argFile = args[2];
+        if (!File.Exists(argFile))
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.Error.WriteLine($"Argumentdatei nicht gefunden: '{argFile}'");
+            Console.ResetColor();
+            return 1;
+        }
+        arguments = File.ReadAllText(argFile);
+    }
+
+    var loadConfig = FileBootstrapConfig.Load(Path.Combine(AppContext.BaseDirectory, "..", FileBootstrapConfig.FileName));
     if (!loadConfig.Succeeded)
     {
         Console.ForegroundColor = ConsoleColor.Red;
-        Console.WriteLine($"Bootstrap-Konfiguration konnte nicht geladen werden: {loadConfig.ErrorMessage}");
+        Console.Error.WriteLine($"Bootstrap-Konfiguration konnte nicht geladen werden: {loadConfig.ErrorMessage}");
         Console.ResetColor();
-        Console.ReadKey();
-        return;
+        return 1;
     }
+
     var config       = loadConfig.Value;
     var errorHandler = new SqlErrorHandler(config.SessionStoreConnectionString);
     var sessionStore = new SessionStore(config.SessionStoreConnectionString);
     var jobRegistry  = new SqlJobRegistry(config.SessionStoreConnectionString);
     var starter      = new SessionStarter(sessionStore, config, jobRegistry);
 
-    Console.WriteLine("Starting demo session...");
-    Console.WriteLine($"  JobTypeName : {DemoJobTypeName}");
-    Console.WriteLine($"  Arguments   : {(string.IsNullOrEmpty(DemoArguments) ? "(none)" : DemoArguments)}");
+    Console.WriteLine($"Starte Job-Session...");
+    Console.WriteLine($"  Job       : {jobTypeName}");
+    Console.WriteLine($"  Argumente : {(string.IsNullOrEmpty(arguments) ? "(keine)" : args[2])}");
     Console.WriteLine();
 
-    var result = starter.StartSession(DemoJobTypeName, DemoArguments);
+    var result = starter.StartSession(jobTypeName, arguments);
 
     if (!result.Succeeded)
     {
         var msg = $"Session konnte nicht gestartet werden: {result.ErrorMessage}";
         Console.ForegroundColor = ConsoleColor.Red;
-        Console.WriteLine(msg);
+        Console.Error.WriteLine(msg);
         Console.ResetColor();
         errorHandler.Handle(result.ToResult());
-        return;
+        return 1;
     }
 
     Console.ForegroundColor = ConsoleColor.Green;
     Console.WriteLine($"Session gestartet. GUID: {result.Value}");
     Console.ResetColor();
+    return 0;
 }
-
