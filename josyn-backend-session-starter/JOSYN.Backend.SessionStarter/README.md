@@ -26,7 +26,7 @@ if (result.Succeeded)
     Console.WriteLine($"Session started: {result.Value}");
 ```
 
-## Known PoC limitations
+## Known limitations
 
 - If `Process.Start` succeeds but JAPServer crashes after the 500 ms startup window,
   the session row in the store remains with an empty `Result` field. A session status

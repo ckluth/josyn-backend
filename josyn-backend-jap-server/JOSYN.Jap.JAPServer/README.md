@@ -84,7 +84,7 @@ Alle Lösungen im Repo auf einmal:
   Verbindungen — bis ESC gedrückt wird.
 - **ESC-Abbruch:** ESC an der Konsole beendet den Server nach dem Abschluss der aktuellen
   Verbindung.
-- **`FakeReadArgumentsFromFile`** — hardcoded für den PoC-Scope; bewusst, kein Bug.
+- **`FakeReadArgumentsFromFile`** — hardcoded; bewusst, kein Bug.
 - **Demo-Session-Key:** `dea5611d-d740-437f-ad93-7a5dc5ae4299` (hardcoded in `launchSettings.json`).
 - **Fehlermeldungen sind auf Deutsch** — projekt-weite Konvention.
 - **`de-DE` Default-Kultur** — betrifft Zahlen- und Datumsformatierung.
