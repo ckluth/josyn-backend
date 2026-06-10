@@ -35,7 +35,7 @@ flowchart TD
 ```
 
 **Transport:** `JOSYN.Foundation.JIP` Named Pipes (session-isoliert per GUID-Key).
-**Anwendungsprotokoll:** `JOSYN.Jap.Shared.Contract.IJosynApplicationProtocol`.
+**Anwendungsprotokoll:** `JOSYN.Jap.Contract.IJosynApplicationProtocol`.
 **Dispatch:** `JipDispatcher.RegisterAll<T>` — kein manuelles What-String-Wiring.
 
 ---
@@ -55,7 +55,7 @@ flowchart TD
 |---|---|
 | `JOSYN.Foundation.ResultPattern` | Fehler-als-Wert-Pattern durchgängig |
 | `JOSYN.Foundation.JIP` | Named-Pipe-IPC-Transport + JIP-Konventions-Layer |
-| `JOSYN.Jap.Shared.Contract` | `IJosynApplicationProtocol`-Anwendungsprotokoll |
+| `JOSYN.Jap.Contract` | `IJosynApplicationProtocol`-Anwendungsprotokoll |
 | `JOSYN.Jap.Shared.Log` | `LocalLog` für Protokollierung |
 
 ---

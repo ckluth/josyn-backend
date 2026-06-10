@@ -3,7 +3,7 @@ using JOSYN.Backend.ErrorHandler;
 using JOSYN.Backend.SessionStore;
 using JOSYN.Foundation.PropertyBag;
 using JOSYN.Foundation.ResultPattern;
-using JOSYN.Jap.Shared.Contract;
+using JOSYN.Jap.Contract;
 
 namespace JOSYN.Jap.JAPServer;
 

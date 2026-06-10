@@ -5,7 +5,7 @@ using JOSYN.Backend.BootstrapConfig;
 using JOSYN.Backend.SessionStore;
 using JOSYN.Foundation.JIP;
 using JOSYN.Foundation.ResultPattern;
-using JOSYN.Jap.Shared.Contract;
+using JOSYN.Jap.Contract;
 using JOSYN.Commons.Log;
 using System.Diagnostics;
 using System.Text;

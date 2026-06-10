@@ -12,7 +12,7 @@ public static class ConfigKeys
 {
     /// <summary>
     /// The runtime environment of this JOSYN installation.
-    /// Valid values: <c>DEV</c>, <c>INT</c>, <c>PROD</c> (names of <c>RuntimeEnvironment</c> enum in <c>JOSYN.Jap.Shared.Contract</c>).
+    /// Valid values: <c>DEV</c>, <c>INT</c>, <c>PROD</c> (names of <c>RuntimeEnvironment</c> enum in <c>JOSYN.Jap.Contract</c>).
     /// Written by: installation/setup. Read by: <c>JAPServer.GetEnvironment()</c>.
     /// </summary>
     public const string RuntimeEnvironment = "RuntimeEnvironment";

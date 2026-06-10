@@ -1,31 +1,58 @@
 ﻿# JOSYN Error Report
 
-Generated: 2026-06-06 12:40:19  |  Showing last **50** entries  |  Found: **14**
+Generated: 2026-06-10 12:50:58  |  Showing last **50** entries  |  Found: **15**
 
 ## Uebersicht
 
 | # | OccurredAt | Causer | JobName | SessionGuid | Message |
 |---|------------|--------|---------|-------------|---------|
-| [1](#error-1) | 2026-06-06 11:56:04 | JOSYN.Jap.JAPServer.Host.RunServer | Contoso.DemoProduct.DemoJob | feb09a53-50e5-4151-b5a8-c4e41d9a2b7b | Client-Exe not found: C:\ProgramData\JOSYN\JobRepository\Contoso.DemoProduct.DemoJob.exe |
-| [2](#error-2) | 2026-06-06 11:13:43 | RunServer | Contoso.DemoProduct.DemoJob | 59ff1f8b-7965-438b-bc64-c7d3c1bb6a45 | Client-Exe not found: C:\ProgramData\JOSYN\JobRepository\Contoso.DemoProduct.DemoJob.exe |
-| [3](#error-3) | 2026-06-06 11:13:03 | RunServer | Contoso.DemoProduct.DemoJob | d8d4148c-a17f-4e5b-b43a-e9150487b4aa | Client-Exe not found: C:\ProgramData\JOSYN\JobRepository\Contoso.DemoProduct.DemoJob.exe |
-| [4](#error-4) | 2026-06-06 00:57:28 | <Main>$ | - | - | Job nicht registriert: 'Contoso.DemoProduct.DemoJob'. Bitte zuerst in josyn.JobRegistry eintragen. |
-| [5](#error-5) | 2026-06-06 00:57:11 | <Main>$ | - | - | Job nicht registriert: 'Contoso.DemoProduct.DemoJob'. Bitte zuerst in josyn.JobRegistry eintragen. |
-| [6](#error-6) | 2026-06-05 23:42:31 | HandleHandlerError | MyDemoCompany.MyDemoProduct.MyDemoJob | 264569b6-05b3-4372-844f-50b6ffcaf61f | Fehler beim Verarbeiten der Anfrage: {"What":"GetEnvironment","Data":null} |
-| [7](#error-7) | 2026-06-05 23:38:32 | HandleHandlerError | MyDemoCompany.MyDemoProduct.MyDemoJob | 74ac1f2c-272e-42f9-8354-19b1bb63d7cf | Fehler beim Verarbeiten der Anfrage: {"What":"GetEnvironment","Data":null} |
-| [8](#error-8) | 2026-06-05 16:26:13 | RunServer | MyDemoCompany.MyDemoProduct.MyDemoJob | bef44539-bda6-4ee7-b8e2-2703c2f5fdd7 | Methode 'IJosynApplicationProtocol.GetEnvironment' hat eine nicht unterstützte Signatur für RegisterAll. Unterstützt: Ta ... |
-| [9](#error-9) | 2026-06-05 16:21:23 | RunServer | MyDemoCompany.MyDemoProduct.MyDemoJob | 2dd50f74-912e-4d31-8e64-b23d098e47d3 | Methode 'IJosynApplicationProtocol.GetEnvironment' hat eine nicht unterstützte Signatur für RegisterAll. Unterstützt: Ta ... |
-| [10](#error-10) | 2026-06-05 16:17:06 | RunServer | MyDemoCompany.MyDemoProduct.MyDemoJob | 07ac267c-0df9-4238-9757-b021630f82aa | Methode 'IJosynApplicationProtocol.GetEnvironment' hat eine nicht unterstützte Signatur für RegisterAll. Unterstützt: Ta ... |
-| [11](#error-11) | 2026-06-05 16:03:54 | RunServer | MyDemoCompany.MyDemoProduct.MyDemoJob | d59ac543-5a86-442c-bf20-face9eed08fa | Methode 'IJosynApplicationProtocol.GetEnvironment' hat eine nicht unterstützte Signatur für RegisterAll. Unterstützt: Ta ... |
-| [12](#error-12) | 2026-06-05 16:02:06 | RunServer | MyDemoCompany.MyDemoProduct.MyDemoJob | 6fbdc7ce-6e51-4f07-9fff-49f1a6fab95b | Methode 'IJosynApplicationProtocol.GetEnvironment' hat eine nicht unterstützte Signatur für RegisterAll. Unterstützt: Ta ... |
-| [13](#error-13) | 2026-06-05 16:01:39 | <Main>$ | - | - | JAPServer-Executable nicht gefunden: 'C:\Temp\VS.OUT\JOSYN\JOSYN.Jap.JAPServer\bin\Release\JOSYN.Jap.JAPServer.exe' |
-| [14](#error-14) | 2026-06-05 16:00:23 | <Main>$ | - | - | JAPServer-Executable nicht gefunden: 'C:\Temp\VS.OUT\JOSYN\JOSYN.Jap.JAPServer\bin\Release\JOSYN.Jap.JAPServer.exe' |
+| [1](#error-1) | 2026-06-06 13:27:12 | JOSYN.Jap.JAPServer.Host.RunServer | Contoso.DemoProduct.DemoJob | e2caae0a-86de-4139-9af6-45ad0371de01 | Client-Exe not found: C:\Temp\VS.OUT\Contoso\Contoso.DemoProduct.DemoJob\bin\Debug\Contoso.DemoProduct.DemoJob\Contoso.D ... |
+| [2](#error-2) | 2026-06-06 11:56:04 | JOSYN.Jap.JAPServer.Host.RunServer | Contoso.DemoProduct.DemoJob | feb09a53-50e5-4151-b5a8-c4e41d9a2b7b | Client-Exe not found: C:\ProgramData\JOSYN\JobRepository\Contoso.DemoProduct.DemoJob.exe |
+| [3](#error-3) | 2026-06-06 11:13:43 | RunServer | Contoso.DemoProduct.DemoJob | 59ff1f8b-7965-438b-bc64-c7d3c1bb6a45 | Client-Exe not found: C:\ProgramData\JOSYN\JobRepository\Contoso.DemoProduct.DemoJob.exe |
+| [4](#error-4) | 2026-06-06 11:13:03 | RunServer | Contoso.DemoProduct.DemoJob | d8d4148c-a17f-4e5b-b43a-e9150487b4aa | Client-Exe not found: C:\ProgramData\JOSYN\JobRepository\Contoso.DemoProduct.DemoJob.exe |
+| [5](#error-5) | 2026-06-06 00:57:28 | <Main>$ | - | - | Job nicht registriert: 'Contoso.DemoProduct.DemoJob'. Bitte zuerst in josyn.JobRegistry eintragen. |
+| [6](#error-6) | 2026-06-06 00:57:11 | <Main>$ | - | - | Job nicht registriert: 'Contoso.DemoProduct.DemoJob'. Bitte zuerst in josyn.JobRegistry eintragen. |
+| [7](#error-7) | 2026-06-05 23:42:31 | HandleHandlerError | MyDemoCompany.MyDemoProduct.MyDemoJob | 264569b6-05b3-4372-844f-50b6ffcaf61f | Fehler beim Verarbeiten der Anfrage: {"What":"GetEnvironment","Data":null} |
+| [8](#error-8) | 2026-06-05 23:38:32 | HandleHandlerError | MyDemoCompany.MyDemoProduct.MyDemoJob | 74ac1f2c-272e-42f9-8354-19b1bb63d7cf | Fehler beim Verarbeiten der Anfrage: {"What":"GetEnvironment","Data":null} |
+| [9](#error-9) | 2026-06-05 16:26:13 | RunServer | MyDemoCompany.MyDemoProduct.MyDemoJob | bef44539-bda6-4ee7-b8e2-2703c2f5fdd7 | Methode 'IJosynApplicationProtocol.GetEnvironment' hat eine nicht unterstützte Signatur für RegisterAll. Unterstützt: Ta ... |
+| [10](#error-10) | 2026-06-05 16:21:23 | RunServer | MyDemoCompany.MyDemoProduct.MyDemoJob | 2dd50f74-912e-4d31-8e64-b23d098e47d3 | Methode 'IJosynApplicationProtocol.GetEnvironment' hat eine nicht unterstützte Signatur für RegisterAll. Unterstützt: Ta ... |
+| [11](#error-11) | 2026-06-05 16:17:06 | RunServer | MyDemoCompany.MyDemoProduct.MyDemoJob | 07ac267c-0df9-4238-9757-b021630f82aa | Methode 'IJosynApplicationProtocol.GetEnvironment' hat eine nicht unterstützte Signatur für RegisterAll. Unterstützt: Ta ... |
+| [12](#error-12) | 2026-06-05 16:03:54 | RunServer | MyDemoCompany.MyDemoProduct.MyDemoJob | d59ac543-5a86-442c-bf20-face9eed08fa | Methode 'IJosynApplicationProtocol.GetEnvironment' hat eine nicht unterstützte Signatur für RegisterAll. Unterstützt: Ta ... |
+| [13](#error-13) | 2026-06-05 16:02:06 | RunServer | MyDemoCompany.MyDemoProduct.MyDemoJob | 6fbdc7ce-6e51-4f07-9fff-49f1a6fab95b | Methode 'IJosynApplicationProtocol.GetEnvironment' hat eine nicht unterstützte Signatur für RegisterAll. Unterstützt: Ta ... |
+| [14](#error-14) | 2026-06-05 16:01:39 | <Main>$ | - | - | JAPServer-Executable nicht gefunden: 'C:\Temp\VS.OUT\JOSYN\JOSYN.Jap.JAPServer\bin\Release\JOSYN.Jap.JAPServer.exe' |
+| [15](#error-15) | 2026-06-05 16:00:23 | <Main>$ | - | - | JAPServer-Executable nicht gefunden: 'C:\Temp\VS.OUT\JOSYN\JOSYN.Jap.JAPServer\bin\Release\JOSYN.Jap.JAPServer.exe' |
 
 ---
 
 ## Details
 
 ### Error #1
+
+| Feld | Wert |
+| ---- | ---- |
+| UID         | eb272e8b-3223-4953-b08e-92431023bfc3 |
+| OccurredAt  | 2026-06-06 13:27:12 |
+| Causer      | JOSYN.Jap.JAPServer.Host.RunServer |
+| JobName     | Contoso.DemoProduct.DemoJob |
+| SessionGuid | e2caae0a-86de-4139-9af6-45ad0371de01 |
+
+**Message**
+
+```
+Client-Exe not found: C:\Temp\VS.OUT\Contoso\Contoso.DemoProduct.DemoJob\bin\Debug\Contoso.DemoProduct.DemoJob\Contoso.DemoProduct.DemoJob.exe
+```
+
+**CallStack**
+
+```
+  at PipesServer.StartClientExe()
+  at <RunAsyncInternal>d__1.RunAsyncInternal() in PipesServer.cs:53
+  at <RunAsync>d__0.RunAsync() in PipesServer.cs:39
+```
+
+---
+
+### Error #2
 
 | Feld | Wert |
 | ---- | ---- |
@@ -51,7 +78,7 @@ Client-Exe not found: C:\ProgramData\JOSYN\JobRepository\Contoso.DemoProduct.Dem
 
 ---
 
-### Error #2
+### Error #3
 
 | Feld | Wert |
 | ---- | ---- |
@@ -77,7 +104,7 @@ Client-Exe not found: C:\ProgramData\JOSYN\JobRepository\Contoso.DemoProduct.Dem
 
 ---
 
-### Error #3
+### Error #4
 
 | Feld | Wert |
 | ---- | ---- |
@@ -103,7 +130,7 @@ Client-Exe not found: C:\ProgramData\JOSYN\JobRepository\Contoso.DemoProduct.Dem
 
 ---
 
-### Error #4
+### Error #5
 
 | Feld | Wert |
 | ---- | ---- |
@@ -127,7 +154,7 @@ Job nicht registriert: 'Contoso.DemoProduct.DemoJob'. Bitte zuerst in josyn.JobR
 
 ---
 
-### Error #5
+### Error #6
 
 | Feld | Wert |
 | ---- | ---- |
@@ -151,7 +178,7 @@ Job nicht registriert: 'Contoso.DemoProduct.DemoJob'. Bitte zuerst in josyn.JobR
 
 ---
 
-### Error #6
+### Error #7
 
 | Feld | Wert |
 | ---- | ---- |
@@ -194,7 +221,7 @@ System.Reflection.TargetInvocationException: Exception has been thrown by the ta
 
 ---
 
-### Error #7
+### Error #8
 
 | Feld | Wert |
 | ---- | ---- |
@@ -237,7 +264,7 @@ System.Reflection.TargetInvocationException: Exception has been thrown by the ta
 
 ---
 
-### Error #8
+### Error #9
 
 | Feld | Wert |
 | ---- | ---- |
@@ -261,7 +288,7 @@ Methode 'IJosynApplicationProtocol.GetEnvironment' hat eine nicht unterstützte 
 
 ---
 
-### Error #9
+### Error #10
 
 | Feld | Wert |
 | ---- | ---- |
@@ -285,7 +312,7 @@ Methode 'IJosynApplicationProtocol.GetEnvironment' hat eine nicht unterstützte 
 
 ---
 
-### Error #10
+### Error #11
 
 | Feld | Wert |
 | ---- | ---- |
@@ -309,7 +336,7 @@ Methode 'IJosynApplicationProtocol.GetEnvironment' hat eine nicht unterstützte 
 
 ---
 
-### Error #11
+### Error #12
 
 | Feld | Wert |
 | ---- | ---- |
@@ -333,7 +360,7 @@ Methode 'IJosynApplicationProtocol.GetEnvironment' hat eine nicht unterstützte 
 
 ---
 
-### Error #12
+### Error #13
 
 | Feld | Wert |
 | ---- | ---- |
@@ -357,7 +384,7 @@ Methode 'IJosynApplicationProtocol.GetEnvironment' hat eine nicht unterstützte 
 
 ---
 
-### Error #13
+### Error #14
 
 | Feld | Wert |
 | ---- | ---- |
@@ -381,7 +408,7 @@ JAPServer-Executable nicht gefunden: 'C:\Temp\VS.OUT\JOSYN\JOSYN.Jap.JAPServer\b
 
 ---
 
-### Error #14
+### Error #15
 
 | Feld | Wert |
 | ---- | ---- |
