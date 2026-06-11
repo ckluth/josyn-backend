@@ -8,6 +8,9 @@
 -- archival and must outlive the entities they reference.
 -- ============================================================
 
+SET QUOTED_IDENTIFIER ON;
+GO
+
 CREATE TABLE [josyn].[ErrorStore]
 (
     [Id]               INT              NOT NULL IDENTITY(1,1),

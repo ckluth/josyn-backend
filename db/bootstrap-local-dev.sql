@@ -37,6 +37,9 @@ GO
 USE [josyn-db-local];
 GO
 
+SET QUOTED_IDENTIFIER ON;
+GO
+
 CREATE USER [tu.josyn]
     FOR LOGIN [tu.josyn];
 GO
@@ -48,14 +51,30 @@ GO
 CREATE SCHEMA [josyn];
 GO
 
--- ── V001 — josyn.SessionStore ────────────────────────────────
+-- ── V001 + V005 — josyn.SessionStore ────────────────────────────────
 CREATE TABLE [josyn].[SessionStore]
 (
-    [Id]          INT              NOT NULL IDENTITY(1,1),
-    [UID]         UNIQUEIDENTIFIER NOT NULL,
-    [JobTypeName] NVARCHAR(256)    NOT NULL,
-    [Arguments]   NVARCHAR(MAX)    NOT NULL,
-    [Result]      NVARCHAR(MAX)    NOT NULL,
+    [Id]                INT              NOT NULL IDENTITY(1,1),
+    [UID]               UNIQUEIDENTIFIER NOT NULL,
+    [JobTypeName]       NVARCHAR(256)    NOT NULL,
+    [Arguments]         NVARCHAR(MAX)    NOT NULL,
+    [Result]            NVARCHAR(MAX)    NOT NULL,
+    [JobVersion]        VARCHAR(24)      NOT NULL,
+    [UserName]          VARCHAR(64)      NOT NULL,
+    [UserDomain]        VARCHAR(32)      NOT NULL,
+    [ClientApplication] VARCHAR(128)     NOT NULL,
+    [ClientMachine]     VARCHAR(64)      NOT NULL,
+    [TecUser]           VARCHAR(64)      NULL,
+    [Started]           DATETIME2        NOT NULL,
+    [ExecutionStatus]   VARCHAR(32)      NOT NULL,
+    [Progress]          VARCHAR(512)     NULL,
+    [Finished]          DATETIME2        NULL,
+    [JapServerProcess]  INT              NOT NULL CONSTRAINT [DF_Session_JapServerProcess]  DEFAULT ((0)),
+    [JobHostProcessId]  INT              NOT NULL CONSTRAINT [DF_Session_JobHostProcessId]  DEFAULT ((0)),
+    [JapExitCode]       INT              NOT NULL CONSTRAINT [DF_Session_JapExitCode]       DEFAULT ((0)),
+    [JobExitCode]       INT              NOT NULL CONSTRAINT [DF_Session_JobExitCode]       DEFAULT ((0)),
+    [LastWriteTime]     DATETIME2        NULL,
+    [WrittenBy]         VARCHAR(64)      NULL,
 
     CONSTRAINT [PK_SessionStore] PRIMARY KEY CLUSTERED ([Id])
 );

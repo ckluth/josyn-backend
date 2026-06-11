@@ -1,4 +1,4 @@
-# get-session-report.ps1
+﻿# get-session-report.ps1
 # Reads the last N entries from josyn.SessionStore and writes session-report.md.
 # Run via get-session-report.cmd [N]   (default: 50)
 
@@ -16,7 +16,11 @@ $output = "$PSScriptRoot\session-report.md"
 $connStr = "Server=$DbServer;Database=$DbDatabase;User Id=$DbUser;Password=$DbPassword;TrustServerCertificate=True"
 $query   = @"
 SELECT TOP ($Top)
-    Id, UID, JobTypeName, Arguments, Result
+    Id, UID, JobTypeName, Arguments, Result,
+    JobVersion, UserName, UserDomain, ClientApplication, ClientMachine,
+    TecUser, Started, ExecutionStatus, Progress, Finished,
+    JapServerProcess, JobHostProcessId, JapExitCode, JobExitCode,
+    LastWriteTime, WrittenBy
 FROM josyn.SessionStore
 ORDER BY Id DESC
 "@
@@ -29,6 +33,25 @@ $adapter         = New-Object System.Data.SqlClient.SqlDataAdapter $cmd
 $table           = New-Object System.Data.DataTable
 $adapter.Fill($table) | Out-Null
 $conn.Close()
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+function NullOr($row, $col) {
+    if ($row.IsNull($col)) { return "-" }
+    return $row[$col]
+}
+
+function Ts($row, $col) {
+    if ($row.IsNull($col)) { return "-" }
+    return ([DateTime]$row[$col]).ToString("yyyy-MM-dd HH:mm:ss")
+}
+
+function Preview($text, $max = 80) {
+    $s = ($text -replace "\|", "\|" -replace "\r?\n", " ")
+    if ($s.Length -gt $max) { return $s.Substring(0, $max) + " ..." }
+    return $s
+}
 
 # ---------------------------------------------------------------------------
 # Render markdown
@@ -49,24 +72,20 @@ else {
     # --- overview table ---
     $lines.Add("## Overview")
     $lines.Add("")
-    $lines.Add("| # | Id | UID | JobTypeName | Arguments (preview) | Result (preview) |")
-    $lines.Add("|---|----|-----|-------------|---------------------|-----------------|")
+    $lines.Add("| # | Id | JobTypeName | Version | User | Started | Status | Result (preview) |")
+    $lines.Add("|---|----|-------------|---------|------|---------|--------|-----------------|")
 
     $i = 1
     foreach ($row in $table.Rows) {
-        $id          = $row["Id"]
-        $uid         = $row["UID"]
-        $jobTypeName = $row["JobTypeName"]
+        $id      = $row["Id"]
+        $job     = $row["JobTypeName"]
+        $ver     = $row["JobVersion"]
+        $user    = "$($row["UserName"])@$($row["UserDomain"])"
+        $started = Ts $row "Started"
+        $status  = $row["ExecutionStatus"]
+        $resPrev = Preview $row["Result"]
 
-        $argStr  = ($row["Arguments"] -replace "\|", "\|" -replace "\r?\n", " ")
-        $argPrev = $argStr.Substring(0, [Math]::Min(80, $argStr.Length))
-        if ($argStr.Length -gt 80) { $argPrev += " ..." }
-
-        $resStr  = ($row["Result"] -replace "\|", "\|" -replace "\r?\n", " ")
-        $resPrev = $resStr.Substring(0, [Math]::Min(80, $resStr.Length))
-        if ($resStr.Length -gt 80) { $resPrev += " ..." }
-
-        $lines.Add("| [$i](#session-$i) | $id | $uid | $jobTypeName | $argPrev | $resPrev |")
+        $lines.Add("| [$i](#session-$i) | $id | $job | $ver | $user | $started | $status | $resPrev |")
         $i++
     }
 
@@ -78,31 +97,41 @@ else {
 
     $i = 1
     foreach ($row in $table.Rows) {
-        $id          = $row["Id"]
-        $uid         = $row["UID"]
-        $jobTypeName = $row["JobTypeName"]
-        $arguments   = $row["Arguments"]
-        $result      = $row["Result"]
-
         $lines.Add("")
-        $lines.Add("### Session #$i")
+        $lines.Add("### Session #$i  <a name='session-$i'></a>")
         $lines.Add("")
-        $lines.Add("| Field       | Value |")
-        $lines.Add("| ----------- | ----- |")
-        $lines.Add("| Id          | $id |")
-        $lines.Add("| UID         | $uid |")
-        $lines.Add("| JobTypeName | $jobTypeName |")
+        $lines.Add("| Field             | Value |")
+        $lines.Add("| ----------------- | ----- |")
+        $lines.Add("| Id                | $($row["Id"]) |")
+        $lines.Add("| UID               | $($row["UID"]) |")
+        $lines.Add("| JobTypeName       | $($row["JobTypeName"]) |")
+        $lines.Add("| JobVersion        | $($row["JobVersion"]) |")
+        $lines.Add("| UserName          | $($row["UserName"]) |")
+        $lines.Add("| UserDomain        | $($row["UserDomain"]) |")
+        $lines.Add("| ClientApplication | $($row["ClientApplication"]) |")
+        $lines.Add("| ClientMachine     | $($row["ClientMachine"]) |")
+        $lines.Add("| TecUser           | $(NullOr $row "TecUser") |")
+        $lines.Add("| Started           | $(Ts $row "Started") |")
+        $lines.Add("| ExecutionStatus   | $($row["ExecutionStatus"]) |")
+        $lines.Add("| Progress          | $(NullOr $row "Progress") |")
+        $lines.Add("| Finished          | $(Ts $row "Finished") |")
+        $lines.Add("| JapServerProcess  | $($row["JapServerProcess"]) |")
+        $lines.Add("| JobHostProcessId  | $($row["JobHostProcessId"]) |")
+        $lines.Add("| JapExitCode       | $($row["JapExitCode"]) |")
+        $lines.Add("| JobExitCode       | $($row["JobExitCode"]) |")
+        $lines.Add("| LastWriteTime     | $(Ts $row "LastWriteTime") |")
+        $lines.Add("| WrittenBy         | $(NullOr $row "WrittenBy") |")
         $lines.Add("")
         $lines.Add("**Arguments**")
         $lines.Add("")
         $lines.Add("``````")
-        $lines.Add($arguments)
+        $lines.Add($row["Arguments"])
         $lines.Add("``````")
         $lines.Add("")
         $lines.Add("**Result**")
         $lines.Add("")
         $lines.Add("``````")
-        $lines.Add($result)
+        $lines.Add($row["Result"])
         $lines.Add("``````")
         $lines.Add("")
         $lines.Add("---")

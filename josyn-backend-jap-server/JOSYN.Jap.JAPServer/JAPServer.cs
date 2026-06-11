@@ -31,10 +31,26 @@ internal sealed class JAPServer(
         var session = get.Value;
         var updated = new JobSessionRecord
         {
-            UID         = session.UID,
-            JobTypeName = session.JobTypeName,
-            Arguments   = session.Arguments,
-            Result      = result
+            UID               = session.UID,
+            JobTypeName       = session.JobTypeName,
+            Arguments         = session.Arguments,
+            Result            = result,
+            JobVersion        = session.JobVersion,
+            UserName          = session.UserName,
+            UserDomain        = session.UserDomain,
+            ClientApplication = session.ClientApplication,
+            ClientMachine     = session.ClientMachine,
+            TecUser           = session.TecUser,
+            Started           = session.Started,
+            ExecutionStatus   = session.ExecutionStatus,
+            Progress          = session.Progress,
+            Finished          = session.Finished,
+            JapServerProcess  = session.JapServerProcess,
+            JobHostProcessId  = session.JobHostProcessId,
+            JapExitCode       = session.JapExitCode,
+            JobExitCode       = session.JobExitCode,
+            LastWriteTime     = session.LastWriteTime,
+            WrittenBy         = session.WrittenBy
         };
 
         var save = sessionStore.UpdateSession(updated);

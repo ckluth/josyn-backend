@@ -36,10 +36,22 @@ public sealed class SessionStarter(
 
         var save = sessionStore.SaveNewSession(new JobSessionRecord
         {
-            UID         = sessionGuid,
-            JobTypeName = jobTypeName,
-            Arguments   = arguments,
-            Result      = string.Empty
+            UID               = sessionGuid,
+            JobTypeName       = jobTypeName,
+            Arguments         = arguments,
+            Result            = string.Empty,
+            JobVersion        = string.Empty,
+            UserName          = Environment.UserName,
+            UserDomain        = Environment.UserDomainName,
+            ClientApplication = AppDomain.CurrentDomain.FriendlyName,
+            ClientMachine     = Environment.MachineName,
+            TecUser           = jobCheck.Value.TechnicalUserName,
+            Started           = DateTime.UtcNow,
+            ExecutionStatus   = "pending",
+            JapServerProcess  = 0,
+            JobHostProcessId  = 0,
+            JapExitCode       = 0,
+            JobExitCode       = 0
         });
 
         if (!save.Succeeded)
