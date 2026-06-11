@@ -1,5 +1,5 @@
 # register-demo-job.ps1
-# Temporary demo script — registers MyDemoCompany.MyDemoProduct.MyDemoJob in josyn.JobRegistry.
+# Temporary demo script — registers Contoso.DemoProduct.DemoJob in josyn.JobRegistry.
 # Run via register-demo-job.cmd.
 
 . "$PSScriptRoot\db-config.ps1"
