@@ -29,7 +29,7 @@ static int RunJob(string[] args)
             Console.ResetColor();
             return 1;
         }
-        arguments = File.ReadAllText(argFile);
+        arguments = Convert.ToBase64String(File.ReadAllBytes(argFile));
     }
 
     var loadConfig = FileBootstrapConfig.Load(Path.Combine(AppContext.BaseDirectory, "..", FileBootstrapConfig.FileName));

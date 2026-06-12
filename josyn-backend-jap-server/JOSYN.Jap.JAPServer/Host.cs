@@ -118,6 +118,19 @@ internal static class Host
         }
         var request = deserialize.Value;
 
+        string decodedArguments;
+        try
+        {
+            decodedArguments = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(request.Arguments));
+        }
+        catch (Exception ex)
+        {
+            errorHandler.Handle(
+                "JOSYN-START: Arguments-Feld konnte nicht base64-dekodiert werden.",
+                callStack: null, exceptionDetails: ex.ToString());
+            return 1;
+        }
+
         var sessionStore = new SessionStore(config.SessionStoreConnectionString);
 
         // Turnstile scope: GUID allocation + session persistence.
@@ -131,7 +144,7 @@ internal static class Host
             {
                 UID               = sessionGuid,
                 JobTypeName       = request.JobTypeName,
-                Arguments         = request.Arguments,
+                Arguments         = decodedArguments,
                 Result            = string.Empty,
                 JobVersion        = string.Empty,
                 UserName          = request.CallerUser,

@@ -10,7 +10,12 @@ public record SessionStartRequest
     /// <summary>The registered job type name.</summary>
     public string JobTypeName         { get; init; } = string.Empty;
 
-    /// <summary>Serialized job arguments (INI format).</summary>
+    /// <summary>
+    /// Job arguments file content, <b>base64-encoded</b> (ADR-007 §3a).
+    /// Orchestrators must encode before populating this field.
+    /// JAPServer decodes before storing in <c>SessionStore</c>.
+    /// <c>job.exe</c> always receives the decoded plain-text INI.
+    /// </summary>
     public string Arguments           { get; init; } = string.Empty;
 
     /// <summary>

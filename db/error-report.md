@@ -1,12 +1,12 @@
 ﻿# JOSYN Error Report
 
-Generated: 2026-06-11 15:44:06  |  Showing last **50** entries  |  Found: **1**
+Generated: 2026-06-12 18:12:26  |  Showing last **50** entries  |  Found: **1**
 
 ## Uebersicht
 
 | # | OccurredAt | Causer | JobName | SessionGuid | Message |
 |---|------------|--------|---------|-------------|---------|
-| [1](#error-1) | 2026-06-11 15:43:28 | JOSYN.Jap.JAPServer.JAPServer.PutError | Contoso.DemoProduct.DemoJob | 92f6d3d8-91fe-4ced-8f3f-f3a3be29b195 | Konfigurationsschlüssel nicht gefunden: 'RuntimeEnvironment' |
+| [1](#error-1) | 2026-06-12 18:09:40 | JOSYN.Jap.JAPServer.JAPServer.PutError | Contoso.DemoProduct.DemoJob | 910f0464-748b-469a-9ab1-cf5c1f732415 | No sections found. |
 
 ---
 
@@ -16,23 +16,26 @@ Generated: 2026-06-11 15:44:06  |  Showing last **50** entries  |  Found: **1**
 
 | Feld | Wert |
 | ---- | ---- |
-| UID         | 49af4639-95fb-4c3c-b4ff-efa2babb89f4 |
-| OccurredAt  | 2026-06-11 15:43:28 |
+| UID         | 53174be0-a8fe-47b7-add7-f742dfeae0f1 |
+| OccurredAt  | 2026-06-12 18:09:40 |
 | Causer      | JOSYN.Jap.JAPServer.JAPServer.PutError |
 | JobName     | Contoso.DemoProduct.DemoJob |
-| SessionGuid | 92f6d3d8-91fe-4ced-8f3f-f3a3be29b195 |
+| SessionGuid | 910f0464-748b-469a-9ab1-cf5c1f732415 |
 
 **Message**
 
 ```
-Konfigurationsschlüssel nicht gefunden: 'RuntimeEnvironment'
+No sections found.
 ```
 
 **CallStack**
 
 ```
-  at JipProtocol.ToResult() in JipProtocol.cs:72
-  at <JOSYN-Jap-Contract-IJosynApplicationProtocol-GetEnvironment>d__10.GetEnvironment() in JAPClient.cs:69
+  at IniDictionarySerializer.DeserializeSingleSection()
+  at PropertyBag.Deserialize() in PropertyBag.cs:273
+  at JobInvoker.RetrieveInvocationArguments() in JobInvoker.cs:187
+  at <CreateInvocationArguments>d__5.CreateInvocationArguments() in JobInvoker.cs:151
+  at <InvokeJob>d__1.InvokeJob() in JobInvoker.cs:46
 ```
 
 ---
