@@ -3,7 +3,7 @@ CHCP 1252
 setlocal
 
 set "NUGET_BASE=%USERPROFILE%\.nuget\packages"
-set "PACKAGE=josyn.backend.adaptercontracts"
+set "PACKAGE=josyn.backend.contracts"
 
 if exist "%NUGET_BASE%\%PACKAGE%" (
     echo Loesche: %NUGET_BASE%\%PACKAGE%

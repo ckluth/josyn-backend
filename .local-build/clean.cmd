@@ -4,7 +4,7 @@ setlocal
 
 set "ROOT=%~dp0.."
 
-call :run_clean "josyn-backend-adapter-contracts"
+call :run_clean "josyn-backend-contracts"
 if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
 
 call :run_clean "josyn-backend-session-store"

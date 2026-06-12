@@ -1,3 +1,4 @@
+using JOSYN.Backend.Contracts;
 using JOSYN.Backend.ConfigStore;
 using JOSYN.Backend.ErrorHandler;
 using JOSYN.Backend.SessionStore;

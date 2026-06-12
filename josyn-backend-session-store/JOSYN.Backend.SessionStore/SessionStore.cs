@@ -1,3 +1,4 @@
+using JOSYN.Backend.Contracts;
 using JOSYN.Foundation.ResultPattern;
 using Microsoft.EntityFrameworkCore;
 
@@ -23,7 +24,7 @@ public sealed class SessionStore(string connectionString) : ISessionStore
                 ClientMachine     = jobSession.ClientMachine,
                 TecUser           = jobSession.TecUser,
                 Started           = jobSession.Started,
-                ExecutionStatus   = jobSession.ExecutionStatus,
+                ExecutionStatus   = ExecutionStatusParser.Serialize(jobSession.ExecutionStatus),
                 Progress          = jobSession.Progress,
                 Finished          = jobSession.Finished,
                 JapServerProcess  = jobSession.JapServerProcess,
@@ -51,6 +52,10 @@ public sealed class SessionStore(string connectionString) : ISessionStore
             if (entity is null)
                 return Result.Error($"No session found for UID '{sessionUid}'.");
 
+            var parseStatus = ExecutionStatusParser.Parse(entity.ExecutionStatus);
+            if (!parseStatus.Succeeded)
+                return parseStatus.ToResult<IJobSessionRecord>();
+
             return new JobSessionRecord
             {
                 UID               = entity.UID,
@@ -64,7 +69,7 @@ public sealed class SessionStore(string connectionString) : ISessionStore
                 ClientMachine     = entity.ClientMachine,
                 TecUser           = entity.TecUser,
                 Started           = entity.Started,
-                ExecutionStatus   = entity.ExecutionStatus,
+                ExecutionStatus   = parseStatus.Value,
                 Progress          = entity.Progress,
                 Finished          = entity.Finished,
                 JapServerProcess  = entity.JapServerProcess,
@@ -98,7 +103,7 @@ public sealed class SessionStore(string connectionString) : ISessionStore
             entity.ClientMachine     = jobSession.ClientMachine;
             entity.TecUser           = jobSession.TecUser;
             entity.Started           = jobSession.Started;
-            entity.ExecutionStatus   = jobSession.ExecutionStatus;
+            entity.ExecutionStatus   = ExecutionStatusParser.Serialize(jobSession.ExecutionStatus);
             entity.Progress          = jobSession.Progress;
             entity.Finished          = jobSession.Finished;
             entity.JapServerProcess  = jobSession.JapServerProcess;

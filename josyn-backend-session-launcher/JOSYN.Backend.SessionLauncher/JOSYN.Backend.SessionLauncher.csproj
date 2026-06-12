@@ -30,7 +30,7 @@
 		<None Include="icon.png" Pack="true" PackagePath="\"/>
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="JOSYN.Backend.SessionLauncherContract" Version="1.0.0-preview01"/>
+		<PackageReference Include="JOSYN.Backend.Contracts"       Version="1.0.0-preview01"/>
 		<PackageReference Include="JOSYN.Backend.BootstrapConfig"         Version="1.0.0-preview01"/>
 		<PackageReference Include="JOSYN.Backend.JobRegistry"             Version="1.0.0-preview01"/>
 		<PackageReference Include="JOSYN.Foundation.PropertyBag"          Version="1.0.0-preview01"/>

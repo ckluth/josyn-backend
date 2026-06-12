@@ -21,6 +21,14 @@ set "ROOT=%~dp0.."
 echo [INFO] Starte dotnet build --configuration %CONFIGURATION% ...
 echo.
 
+echo === JOSYN.Backend.Contracts ===
+dotnet build "%ROOT%\josyn-backend-contracts\JOSYN.Backend.Contracts.slnx" --configuration %CONFIGURATION%
+if %ERRORLEVEL% neq 0 (
+    echo.
+    echo [FEHLER] Build fehlgeschlagen: JOSYN.Backend.Contracts. Exit-Code: %ERRORLEVEL%
+    exit /b %ERRORLEVEL%
+)
+
 echo === JOSYN.Backend.SessionStore ===
 dotnet build "%ROOT%\josyn-backend-session-store\JOSYN.Backend.SessionStore.slnx" --configuration %CONFIGURATION%
 if %ERRORLEVEL% neq 0 (

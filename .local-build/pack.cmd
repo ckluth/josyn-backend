@@ -4,7 +4,7 @@ setlocal
 
 set "ROOT=%~dp0.."
 
-call :run_pack "josyn-backend-adapter-contracts"
+call :run_pack "josyn-backend-contracts"
 if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
 
 call :run_pack "josyn-backend-session-store"
@@ -20,9 +20,6 @@ call :run_pack "josyn-backend-job-registry"
 if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
 
 call :run_pack "josyn-backend-session-starter"
-if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
-
-call :run_pack "josyn-backend-session-launcher-contract"
 if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
 
 call :run_pack "josyn-backend-session-launcher"

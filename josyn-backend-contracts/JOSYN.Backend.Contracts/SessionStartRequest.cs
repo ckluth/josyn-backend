@@ -1,4 +1,4 @@
-namespace JOSYN.Backend.SessionLauncherContract;
+namespace JOSYN.Backend.Contracts;
 
 /// <summary>
 /// Describes a request to start a new job session.

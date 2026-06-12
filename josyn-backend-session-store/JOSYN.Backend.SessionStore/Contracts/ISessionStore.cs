@@ -1,3 +1,4 @@
+using JOSYN.Backend.Contracts;
 using JOSYN.Foundation.ResultPattern;
 
 namespace JOSYN.Backend.SessionStore;

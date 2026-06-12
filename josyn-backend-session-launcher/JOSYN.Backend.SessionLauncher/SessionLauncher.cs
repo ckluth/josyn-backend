@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using JOSYN.Backend.BootstrapConfig;
 using JOSYN.Backend.JobRegistry;
-using JOSYN.Backend.SessionLauncherContract;
+using JOSYN.Backend.Contracts;
 using JOSYN.Foundation.PropertyBag;
 using JOSYN.Foundation.ResultPattern;
 

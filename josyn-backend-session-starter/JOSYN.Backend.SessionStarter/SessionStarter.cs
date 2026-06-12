@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using JOSYN.Backend.BootstrapConfig;
 using JOSYN.Backend.JobRegistry;
+using JOSYN.Backend.Contracts;
 using JOSYN.Backend.SessionStore;
 using JOSYN.Foundation.ResultPattern;
 
@@ -47,7 +48,7 @@ public sealed class SessionStarter(
             ClientMachine     = Environment.MachineName,
             TecUser           = jobCheck.Value.TechnicalUserName,
             Started           = DateTime.UtcNow,
-            ExecutionStatus   = "pending",
+            ExecutionStatus   = ExecutionStatus.Pending,
             JapServerProcess  = 0,
             JobHostProcessId  = 0,
             JapExitCode       = 0,

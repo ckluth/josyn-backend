@@ -14,7 +14,7 @@
 		<Company>HAEVG</Company>
 		<Authors>HAEVG SWE</Authors>
 		<Copyright>Copyright © 2026 HAEVG AG</Copyright>
-		<Description>JOSYN Backend SessionStore — Persistenz-Schicht für Job-Sessions. Stellt ISessionStore und IJobSession bereit; EF Core-Implementierung gegen SQL Server.</Description>
+		<Description>JOSYN Backend SessionStore — Persistenz-Schicht für Job-Sessions. Stellt ISessionStore bereit; EF Core-Implementierung gegen SQL Server. Domain-Contracts leben in JOSYN.Backend.Contracts (ADR-017).</Description>
 		<PackageId>JOSYN.Backend.SessionStore</PackageId>
 		<RepositoryType>git</RepositoryType>
 		<PackageProjectUrl>https://github.com/ckluth/JOSYN</PackageProjectUrl>
@@ -31,6 +31,7 @@
 	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="JOSYN.Foundation.ResultPattern" Version="1.0.0-preview01"/>
+		<PackageReference Include="JOSYN.Backend.Contracts"       Version="1.0.0-preview01"/>
 		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.5"/>
 	</ItemGroup>
 	<ItemGroup>

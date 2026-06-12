@@ -7,15 +7,15 @@
 		<IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 		<LangVersion>latest</LangVersion>
-		<AssemblyName>JOSYN.Backend.AdapterContracts</AssemblyName>
-		<RootNamespace>JOSYN.Backend.AdapterContracts</RootNamespace>
+		<AssemblyName>JOSYN.Backend.Contracts</AssemblyName>
+		<RootNamespace>JOSYN.Backend.Contracts</RootNamespace>
 		<PlatformTarget>AnyCPU</PlatformTarget>
 		<Version>1.0.0-preview01</Version>
 		<Company>HAEVG</Company>
 		<Authors>HAEVG SWE</Authors>
 		<Copyright>Copyright © 2026 HAEVG AG</Copyright>
-		<Description>JOSYN Backend AdapterContracts — Shared adapter interfaces for late-bound external integrations (see ADR-009). Only dependency: ResultPattern. Both JOSYN and adapters reference this package.</Description>
-		<PackageId>JOSYN.Backend.AdapterContracts</PackageId>
+		<Description>JOSYN Backend Contracts — Domain contracts and vocabulary for the JOSYN backend layer. Single home for all backend-layer interfaces, data contracts, and domain types (see ADR-017).</Description>
+		<PackageId>JOSYN.Backend.Contracts</PackageId>
 		<RepositoryType>git</RepositoryType>
 		<PackageProjectUrl>https://github.com/ckluth/JOSYN</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/ckluth/JOSYN</RepositoryUrl>
@@ -27,7 +27,6 @@
 	</ItemGroup>
 	<ItemGroup>
 		<None Include="..\..\..\.gitignore" Visible="false"/>
-		<None Include="..\Directory.Build.props" Visible="false"/>
 		<None Include="..\nuget.config" Visible="false"/>
 	</ItemGroup>
 </Project>

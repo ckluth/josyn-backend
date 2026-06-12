@@ -1,4 +1,4 @@
-using JOSYN.Backend.SessionLauncherContract;
+using JOSYN.Backend.Contracts;
 using JOSYN.Foundation.ResultPattern;
 
 namespace JOSYN.Backend.SessionLauncher;

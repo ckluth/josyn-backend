@@ -1,6 +1,6 @@
 using JOSYN.Foundation.ResultPattern;
 
-namespace JOSYN.Backend.AdapterContracts;
+namespace JOSYN.Backend.Contracts;
 
 /// <summary>
 /// Provides read access to JOSYN runtime configuration values.

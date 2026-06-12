@@ -1,9 +1,9 @@
-using JOSYN.Backend.AdapterContracts;
+using JOSYN.Backend.Contracts;
 using JOSYN.Backend.ConfigStore;
 using JOSYN.Backend.ErrorHandler;
 using JOSYN.Backend.BootstrapConfig;
 using JOSYN.Backend.SessionStore;
-using JOSYN.Backend.SessionLauncherContract;
+using JOSYN.Backend.Contracts;
 using JOSYN.Commons.Helpers;
 using JOSYN.Foundation.JIP;
 using JOSYN.Foundation.PropertyBag;
@@ -153,7 +153,7 @@ internal static class Host
                 ClientMachine     = request.CallerMachine,
                 TecUser           = request.TechnicalUserName,
                 Started           = DateTime.Now,
-                ExecutionStatus   = "pending",
+                ExecutionStatus   = ExecutionStatus.Pending,
                 JapServerProcess  = 0,
                 JobHostProcessId  = 0,
                 JapExitCode       = 0,
