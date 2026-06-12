@@ -20,7 +20,7 @@
 		<PackageReference Include="JOSYN.Backend.ErrorHandler"    Version="1.0.0-preview01"/>
 		<PackageReference Include="JOSYN.Backend.BootstrapConfig"   Version="1.0.0-preview01"/>
 		<PackageReference Include="JOSYN.Backend.JobRegistry"     Version="1.0.0-preview01"/>
-		<PackageReference Include="JOSYN.Backend.SessionStarter"  Version="1.0.0-preview01"/>
+		<PackageReference Include="JOSYN.Backend.SessionLauncher"  Version="1.0.0-preview01"/>
 		<PackageReference Include="JOSYN.Foundation.ResultPattern" Version="1.0.0-preview01"/>
 	</ItemGroup>
 	<ItemGroup>

@@ -1,8 +1,8 @@
 using JOSYN.Backend.ErrorHandler;
 using JOSYN.Backend.BootstrapConfig;
 using JOSYN.Backend.JobRegistry;
-using JOSYN.Backend.SessionStarter;
-using JOSYN.Backend.SessionStore;
+using JOSYN.Backend.SessionLauncher;
+using JOSYN.Backend.SessionLauncherContract;
 
 return RunJob(args);
 
@@ -43,16 +43,23 @@ static int RunJob(string[] args)
 
     var config       = loadConfig.Value;
     var errorHandler = new SqlErrorHandler(config.SessionStoreConnectionString);
-    var sessionStore = new SessionStore(config.SessionStoreConnectionString);
     var jobRegistry  = new SqlJobRegistry(config.SessionStoreConnectionString);
-    var starter      = new SessionStarter(sessionStore, config, jobRegistry);
+    var launcher     = new SessionLauncher(config, jobRegistry);
 
     Console.WriteLine($"Starte Job-Session...");
     Console.WriteLine($"  Job       : {jobTypeName}");
     Console.WriteLine($"  Argumente : {(string.IsNullOrEmpty(arguments) ? "(keine)" : args[2])}");
     Console.WriteLine();
 
-    var result = starter.StartSession(jobTypeName, arguments);
+    var result = launcher.LaunchSession(new SessionStartRequest
+    {
+        JobTypeName       = jobTypeName,
+        Arguments         = arguments,
+        CallerUser        = Environment.UserName,
+        CallerDomain      = Environment.UserDomainName,
+        CallerApplication = AppDomain.CurrentDomain.FriendlyName,
+        CallerMachine     = Environment.MachineName
+    });
 
     if (!result.Succeeded)
     {
@@ -60,12 +67,12 @@ static int RunJob(string[] args)
         Console.ForegroundColor = ConsoleColor.Red;
         Console.Error.WriteLine(msg);
         Console.ResetColor();
-        errorHandler.Handle(result.ToResult());
+        errorHandler.Handle(result);
         return 1;
     }
 
     Console.ForegroundColor = ConsoleColor.Green;
-    Console.WriteLine($"Session gestartet. GUID: {result.Value}");
+    Console.WriteLine("Session gestartet.");
     Console.ResetColor();
     return 0;
 }
