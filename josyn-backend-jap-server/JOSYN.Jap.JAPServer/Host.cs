@@ -152,7 +152,7 @@ internal static class Host
                 ClientApplication = request.CallerApplication,
                 ClientMachine     = request.CallerMachine,
                 TecUser           = request.TechnicalUserName,
-                Started           = DateTime.UtcNow,
+                Started           = DateTime.Now,
                 ExecutionStatus   = "pending",
                 JapServerProcess  = 0,
                 JobHostProcessId  = 0,
