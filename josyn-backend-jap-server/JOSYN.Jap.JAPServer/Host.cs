@@ -3,7 +3,10 @@ using JOSYN.Backend.ConfigStore;
 using JOSYN.Backend.ErrorHandler;
 using JOSYN.Backend.BootstrapConfig;
 using JOSYN.Backend.SessionStore;
+using JOSYN.Backend.SessionLauncherContract;
+using JOSYN.Commons.Helpers;
 using JOSYN.Foundation.JIP;
+using JOSYN.Foundation.PropertyBag;
 using JOSYN.Foundation.ResultPattern;
 using JOSYN.Jap.Contract;
 using JOSYN.Commons.Log;
@@ -36,7 +39,11 @@ internal static class Host
             
 #if DEBUG            
             Console.WriteLine("ARGS: " + string.Join(" | ", args));
-#endif            
+#endif
+            // Mode dispatch: JOSYN-START or JOSYN-IPC
+            if (args.Length >= 2 && args[0] == "JOSYN-START")
+                return await HandleSessionStart(args[1], config, errorHandler);
+
             var sessionKey = PipesProtocol.ParseSessionKeyCLIArguments(args);
             if (sessionKey == Guid.Empty)
             {
@@ -71,6 +78,96 @@ internal static class Host
             Console.ReadKey(true);
 #endif
         }
+    }
+
+    // -------------------------------------------------------------------------
+    // JOSYN-START mode
+    // -------------------------------------------------------------------------
+
+    private static async Task<int> HandleSessionStart(
+        string fileArg, IBootstrapConfig config, IErrorHandler errorHandler)
+    {
+        if (!fileArg.StartsWith('@'))
+        {
+            errorHandler.Handle("JOSYN-START: Dateiargument muss mit '@' beginnen.", null, null);
+            return 1;
+        }
+
+        var filePath = fileArg[1..];
+        string rawRequest;
+        try
+        {
+            rawRequest = File.ReadAllText(filePath);
+            File.Delete(filePath);
+        }
+        catch (Exception ex)
+        {
+            errorHandler.Handle(
+                $"JOSYN-START: Temp-Datei konnte nicht gelesen werden: '{filePath}'",
+                callStack: null, exceptionDetails: ex.ToString());
+            return 1;
+        }
+
+        var deserialize = PropertyBag.Deserialize<SessionStartRequest>(rawRequest);
+        if (!deserialize.Succeeded)
+        {
+            errorHandler.Handle(
+                $"JOSYN-START: SessionStartRequest konnte nicht deserialisiert werden: {deserialize.ErrorMessage}",
+                callStack: null, exceptionDetails: null);
+            return 1;
+        }
+        var request = deserialize.Value;
+
+        var sessionStore = new SessionStore(config.SessionStoreConnectionString);
+
+        // Turnstile scope: GUID allocation + session persistence.
+        // ADR-007: scope must also cover job spawn + accept/reject negotiation (ADR-008).
+        // Extend this block when ADR-008 is implemented.
+        Guid sessionGuid = Guid.Empty;
+        var turnstileResult = Turnstile.Run(request.JobTypeName, () =>
+        {
+            sessionGuid = Guid.NewGuid();
+            var save = sessionStore.SaveNewSession(new JobSessionRecord
+            {
+                UID               = sessionGuid,
+                JobTypeName       = request.JobTypeName,
+                Arguments         = request.Arguments,
+                Result            = string.Empty,
+                JobVersion        = string.Empty,
+                UserName          = request.CallerUser,
+                UserDomain        = request.CallerDomain,
+                ClientApplication = request.CallerApplication,
+                ClientMachine     = request.CallerMachine,
+                TecUser           = request.TechnicalUserName,
+                Started           = DateTime.UtcNow,
+                ExecutionStatus   = "pending",
+                JapServerProcess  = 0,
+                JobHostProcessId  = 0,
+                JapExitCode       = 0,
+                JobExitCode       = 0
+            });
+            if (!save.Succeeded)
+                throw new InvalidOperationException(save.ErrorMessage);
+        });
+
+        if (!turnstileResult.Succeeded)
+        {
+            errorHandler.Handle(
+                turnstileResult.ErrorMessage!,
+                callStack: null, exceptionDetails: null,
+                sessionGuid: sessionGuid == Guid.Empty ? null : sessionGuid);
+            return 1;
+        }
+
+        var getSource = ResolveConfigSource(config);
+        if (!getSource.Succeeded)
+        {
+            errorHandler.Handle(getSource.ToResult(), sessionGuid: sessionGuid);
+            return 1;
+        }
+        var configStore = new ConfigStore(getSource.Value, config.SessionStoreConnectionString);
+
+        return await RunServer(sessionGuid, sessionStore, configStore, config, errorHandler);
     }
 
     // -------------------------------------------------------------------------
