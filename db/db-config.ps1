@@ -8,6 +8,3 @@ $DbServer   = "localhost\SQLEXPRESS01"
 $DbDatabase = "josyn-db-local"
 $DbUser     = "tu.josyn"
 $DbPassword = "josyn"
-
-
-C:\DevGit\josyn-backend\db\get-session-report.ps1
