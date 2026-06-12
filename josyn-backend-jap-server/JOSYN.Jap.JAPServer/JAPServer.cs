@@ -15,6 +15,10 @@ internal sealed class JAPServer(
     IErrorHandler  errorHandler,
     IConfigStore   configStore) : IJosynApplicationProtocol
 {
+    private bool _errorReported;
+
+    /// <summary>True if <see cref="IJosynApplicationProtocol.PutError"/> was called during this session.</summary>
+    internal bool ErrorWasReported => _errorReported;
     Task<Result<string>> IJosynApplicationProtocol.GetRawArguments()
     {
         var get = sessionStore.GetSession(sessionGuid);
@@ -69,6 +73,9 @@ internal sealed class JAPServer(
 
     Task<Result> IJosynApplicationProtocol.PutError(string serializedError)
     {
+        _errorReported = true;
+        SetStatus(ExecutionStatus.FinishedFaulted);
+
         var deserialize = PropertyBag.Deserialize<ErrorReport>(serializedError);
         if (!deserialize.Succeeded)
         {
@@ -96,5 +103,16 @@ internal sealed class JAPServer(
                 Result<RuntimeEnvironment>.Fail($"Ungültiger RuntimeEnvironment-Wert in ConfigStore: '{get.Value}'"));
         
         return Task.FromResult<Result<RuntimeEnvironment>>(env);
+    }
+
+    // -------------------------------------------------------------------------
+
+    private void SetStatus(ExecutionStatus status)
+    {
+        var get = sessionStore.GetSession(sessionGuid);
+        if (!get.Succeeded) { errorHandler.Handle(get.ToResult(), jobName: jobName, sessionGuid: sessionGuid); return; }
+        var updated = (JobSessionRecord)get.Value with { ExecutionStatus = status };
+        var save = sessionStore.UpdateSession(updated);
+        if (!save.Succeeded) errorHandler.Handle(save, jobName: jobName, sessionGuid: sessionGuid);
     }
 }

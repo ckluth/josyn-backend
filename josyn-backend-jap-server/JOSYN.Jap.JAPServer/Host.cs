@@ -277,17 +277,23 @@ internal static class Host
 
 #if DEBUG
         Console.WriteLine("Invoking PipesServer.RunAsync()...");
-#endif                
+#endif
+        SetStatus(sessionStore, sessionKey, ExecutionStatus.Running, errorHandler, jobName);
+
         var res = await PipesServer.RunAsync(serverStartArguments);
 
 #if DEBUG
         Console.WriteLine($"Finished after {sw.Elapsed}");
-#endif                        
+#endif
         if (!res.Succeeded)
         {
+            SetStatus(sessionStore, sessionKey, ExecutionStatus.FinishedFaulted, errorHandler, jobName);
             errorHandler.Handle(res, jobName: jobName, sessionGuid: sessionKey);
             return 1;
         }
+
+        if (!japServer.ErrorWasReported)
+            SetStatus(sessionStore, sessionKey, ExecutionStatus.FinishedSuccessfully, errorHandler, jobName);
 
         LocalLog.WriteInfo("Server terminiert.");
         return 0;
@@ -311,5 +317,20 @@ internal static class Host
         var msg = $"Fehler beim Verarbeiten der Anfrage: {request}";
         errorHandler.Handle(msg, callStack: null, exceptionDetails: ex.ToString(), jobName: jobName, sessionGuid: sessionGuid);
         await Task.CompletedTask;
+    }
+
+    // -------------------------------------------------------------------------
+    // Status helpers
+    // -------------------------------------------------------------------------
+
+    private static void SetStatus(
+        SessionStore sessionStore, Guid sessionGuid, ExecutionStatus status,
+        IErrorHandler errorHandler, string? jobName = null)
+    {
+        var get = sessionStore.GetSession(sessionGuid);
+        if (!get.Succeeded) { errorHandler.Handle(get.ToResult(), jobName: jobName, sessionGuid: sessionGuid); return; }
+        var updated = (JobSessionRecord)get.Value with { ExecutionStatus = status };
+        var save = sessionStore.UpdateSession(updated);
+        if (!save.Succeeded) errorHandler.Handle(save, jobName: jobName, sessionGuid: sessionGuid);
     }
 }
