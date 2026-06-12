@@ -30,7 +30,7 @@ public sealed class SessionStore(string connectionString) : ISessionStore
                 JobHostProcessId  = jobSession.JobHostProcessId,
                 JapExitCode       = jobSession.JapExitCode,
                 JobExitCode       = jobSession.JobExitCode,
-                LastWriteTime     = jobSession.LastWriteTime,
+                LastWriteTime     = DateTime.Now,
                 WrittenBy         = jobSession.WrittenBy
             });
             ctx.SaveChanges();
@@ -105,7 +105,7 @@ public sealed class SessionStore(string connectionString) : ISessionStore
             entity.JobHostProcessId  = jobSession.JobHostProcessId;
             entity.JapExitCode       = jobSession.JapExitCode;
             entity.JobExitCode       = jobSession.JobExitCode;
-            entity.LastWriteTime     = jobSession.LastWriteTime;
+            entity.LastWriteTime     = DateTime.Now;
             entity.WrittenBy         = jobSession.WrittenBy;
             ctx.SaveChanges();
             return Result.Success;
