@@ -22,6 +22,12 @@ if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
 call :run_pack "josyn-backend-session-starter"
 if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
 
+call :run_pack "josyn-backend-session-launcher-contract"
+if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
+
+call :run_pack "josyn-backend-session-launcher"
+if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
+
 call :run_pack "josyn-backend-error-handler"
 if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
 
