@@ -3,7 +3,6 @@ using JOSYN.Backend.ConfigStore;
 using JOSYN.Backend.ErrorHandler;
 using JOSYN.Backend.BootstrapConfig;
 using JOSYN.Backend.SessionStore;
-using JOSYN.Backend.Contracts;
 using JOSYN.Commons.Helpers;
 using JOSYN.Foundation.JIP;
 using JOSYN.Foundation.PropertyBag;

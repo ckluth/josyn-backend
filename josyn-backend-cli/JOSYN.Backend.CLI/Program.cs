@@ -1,8 +1,8 @@
 using JOSYN.Backend.ErrorHandler;
 using JOSYN.Backend.BootstrapConfig;
 using JOSYN.Backend.JobRegistry;
+using JOSYN.Backend.Contracts;
 using JOSYN.Backend.SessionLauncher;
-using JOSYN.Backend.SessionLauncherContract;
 
 return RunJob(args);
 
