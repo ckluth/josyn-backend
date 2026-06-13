@@ -117,4 +117,30 @@ public sealed class SessionStore(string connectionString) : ISessionStore
         }
         catch (Exception ex) { return ex; }
     }
+
+    public Result<IReadOnlyList<string>> GetConcurrentSessionArguments(Guid excludeSessionGuid, string jobTypeName)
+    {
+        try
+        {
+            var transientStatuses = new[]
+            {
+                ExecutionStatusParser.Serialize(ExecutionStatus.Preparing),
+                ExecutionStatusParser.Serialize(ExecutionStatus.Running),
+                ExecutionStatusParser.Serialize(ExecutionStatus.RunningCancellationRequested)
+            };
+
+            using var ctx = new SessionStoreDbContext(connectionString);
+            var args = ctx.SessionStore
+                .AsNoTracking()
+                .Where(e => e.JobTypeName == jobTypeName
+                         && e.UID != excludeSessionGuid
+                         && transientStatuses.Contains(e.ExecutionStatus))
+                .Select(e => e.Arguments)
+                .ToList();
+
+            IReadOnlyList<string> result = args;
+            return Result<IReadOnlyList<string>>.Success(result);
+        }
+        catch (Exception ex) { return ex; }
+    }
 }

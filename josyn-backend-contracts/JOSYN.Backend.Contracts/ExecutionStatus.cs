@@ -9,6 +9,12 @@ public enum ExecutionStatus
     /// <summary>Session record written; JAPServer and job process not yet spawned.</summary>
     Pending,
 
+    /// <summary>
+    /// JAPServer is active; job.exe is launching, connecting pipes,
+    /// and the accept/reject negotiation (ADR-008) is in progress.
+    /// </summary>
+    Preparing,
+
     /// <summary>Both processes are active; job is executing.</summary>
     Running,
 
