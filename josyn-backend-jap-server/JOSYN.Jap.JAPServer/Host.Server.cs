@@ -14,9 +14,7 @@ internal static partial class Host
 
     private static async Task<string> HandleRequest(IJipDispatcher dispatcher, string requestStr)
     {
-        Console.WriteLine($"SRV|RECEIVED> {requestStr}");
         var responseStr = await dispatcher.Dispatch(requestStr);
-        Console.WriteLine($"SRV|SENDING>  {responseStr}");
         return responseStr;
     }
 

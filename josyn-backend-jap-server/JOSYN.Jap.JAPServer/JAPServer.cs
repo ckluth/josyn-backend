@@ -19,8 +19,6 @@ internal sealed class JAPServer(
     private readonly TaskCompletionSource<bool> _negotiationGate =
         new(TaskCreationOptions.RunContinuationsAsynchronously);
 
-    private bool _terminalStatusSet;
-
     /// <summary>
     /// Completes when <see cref="AcceptSession"/> or <see cref="RejectSession"/> is called.
     /// <c>true</c> = accepted; <c>false</c> = rejected.
@@ -29,7 +27,7 @@ internal sealed class JAPServer(
     internal Task<bool> NegotiationOutcome => _negotiationGate.Task;
 
     /// <summary>True if a terminal status was already set by a protocol call.</summary>
-    internal bool TerminalStatusSet => _terminalStatusSet;
+    internal bool TerminalStatusSet { get; private set; }
 
     // -------------------------------------------------------------------------
     // Session start negotiation
@@ -78,16 +76,7 @@ internal sealed class JAPServer(
 
         var updated = (JobSessionRecord)get.Value with { Result = result };
         var save = sessionStore.UpdateSession(updated);
-        if (!save.Succeeded)
-            return Task.FromResult(Result.Propagate(save));
-
-        Console.WriteLine();
-        Console.ForegroundColor = ConsoleColor.Yellow;
-        Console.WriteLine("[PROCESSING]");
-        Console.WriteLine(result);
-        Console.ResetColor();
-
-        return Task.FromResult(Result.Success);
+        return Task.FromResult(!save.Succeeded ? Result.Propagate(save) : Result.Success);
     }
 
     Task<Result> IJosynApplicationProtocol.PutDomainError(string? description)
@@ -144,7 +133,7 @@ internal sealed class JAPServer(
 
     private void SetTerminalStatus(ExecutionStatus status, string? result = null)
     {
-        _terminalStatusSet = true;
+        TerminalStatusSet = true;
         var get = sessionStore.GetSession(sessionGuid);
         if (!get.Succeeded) { errorHandler.Handle(get.ToResult(), jobName: jobName, sessionGuid: sessionGuid); return; }
         var updated = (JobSessionRecord)get.Value with
