@@ -32,7 +32,7 @@ internal static partial class Host
         }
 
         var jobName    = getSession.Value.JobTypeName;
-        var jobExePath = Path.Combine(config.BackendRoot, "JobRepository", jobName, jobName + ".exe");
+        var jobExePath = Path.Combine(config.BackendRoot, JobRepositoryFolder, jobName, jobName + ".exe");
 
         // Set Preparing + JobVersion — skip negotiation in legacy IPC mode.
         SetPreparingWithVersion(sessionStore, sessionKey, jobExePath, errorHandler, jobName);

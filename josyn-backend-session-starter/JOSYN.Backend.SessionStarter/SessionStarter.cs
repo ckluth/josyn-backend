@@ -3,6 +3,7 @@ using JOSYN.Backend.BootstrapConfig;
 using JOSYN.Backend.JobRegistry;
 using JOSYN.Backend.Contracts;
 using JOSYN.Backend.SessionStore;
+using JOSYN.Foundation.JIP;
 using JOSYN.Foundation.ResultPattern;
 
 namespace JOSYN.Backend.SessionStarter;
@@ -20,7 +21,7 @@ public sealed class SessionStarter(
     /// where BackendRoot is the directory containing <c>josyn.bootstrap.ini</c> (ADR-012).
     /// </summary>
     private string JapServerExePath =>
-        Path.Combine(_bootstrapConfig.BackendRoot, "JAPServer", "JOSYN.Jap.JAPServer.exe");
+        Path.Combine(_bootstrapConfig.BackendRoot, JapServerConstants.FolderName, JapServerConstants.ExeName);
 
     /// <inheritdoc/>
     public Result<Guid> StartSession(string jobTypeName, string arguments)
@@ -63,7 +64,7 @@ public sealed class SessionStarter(
             Process.Start(new ProcessStartInfo
             {
                 FileName        = exePath,
-                Arguments       = $"JOSYN-IPC {sessionGuid}",
+                Arguments       = PipesProtocol.CreateClientStartCLIArguments(sessionGuid.ToString()),
                 UseShellExecute = false
             });
 

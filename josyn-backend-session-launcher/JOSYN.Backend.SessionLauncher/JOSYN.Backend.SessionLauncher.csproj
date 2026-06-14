@@ -14,7 +14,7 @@
 		<Company>HAEVG</Company>
 		<Authors>HAEVG SWE</Authors>
 		<Copyright>Copyright © 2026 HAEVG AG</Copyright>
-		<Description>JOSYN Backend SessionLauncher — Orchestrator-side launcher for JOSYN job sessions. Validates job registration, resolves TechnicalUserName, serializes SessionStartRequest, and spawns JAPServer.exe in JOSYN-START mode.</Description>
+		<Description>JOSYN Backend SessionLauncher — Orchestrator-side launcher for JOSYN job sessions. Validates job registration, resolves TechnicalUserName, builds SessionStartSpec, and spawns JAPServer.exe in JOSYN-START mode.</Description>
 		<PackageId>JOSYN.Backend.SessionLauncher</PackageId>
 		<RepositoryType>git</RepositoryType>
 		<PackageProjectUrl>https://github.com/ckluth/JOSYN</PackageProjectUrl>

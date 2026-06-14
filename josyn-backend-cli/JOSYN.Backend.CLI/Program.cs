@@ -1,78 +1,106 @@
-using JOSYN.Backend.ErrorHandler;
 using JOSYN.Backend.BootstrapConfig;
 using JOSYN.Backend.JobRegistry;
 using JOSYN.Backend.Contracts;
-using JOSYN.Backend.SessionLauncher;
 
-return RunJob(args);
+namespace JOSYN.Backend.CLI;
 
-// -------------------------------------------------------------------------
-
-static int RunJob(string[] args)
+internal class Program
 {
-    if (args.Length < 2 || !string.Equals(args[0], "run-job", StringComparison.OrdinalIgnoreCase))
-    {
-        Console.Error.WriteLine("Verwendung: JOSYN.Backend.CLI.exe run-job <jobname> [<argumentdatei>]");
-        return 1;
-    }
+    private static int Main(string[] args) { return RunJob(args); }
 
-    var jobTypeName = args[1];
-    var arguments   = string.Empty;
-
-    if (args.Length >= 3)
+    private static int RunJob(string[] args)
     {
-        var argFile = args[2];
-        if (!File.Exists(argFile))
+        try
         {
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.Error.WriteLine($"Argumentdatei nicht gefunden: '{argFile}'");
-            Console.ResetColor();
-            return 1;
+            //
+            // Parse CLI Arguments
+            //
+            if (args.Length < 2 || !string.Equals(args[0], "run-job", StringComparison.OrdinalIgnoreCase))
+                return PrintMessage("Verwendung: JOSYN.Backend.CLI.exe run-job <jobname> [<argumentdatei>]", 1,
+                    MsgType.Error);
+
+            var jobTypeName = args[1];
+            var arguments = string.Empty;
+
+            //
+            // Load Job Arguments (optional)
+            //        
+            if (args.Length >= 3)
+            {
+                var argFile = args[2];
+                if (!File.Exists(argFile))
+                    return PrintMessage($"Argumentdatei nicht gefunden: '{argFile}'", 1, MsgType.Error);
+
+                arguments = Convert.ToBase64String(File.ReadAllBytes(argFile));
+            }
+
+            //
+            // Load Bootstrap Configuration
+            //
+            var loadConfig = FileBootstrapConfig.Load(Path.Combine(AppContext.BaseDirectory, "..", FileBootstrapConfig.FileName));
+            if (!loadConfig.Succeeded)
+                return PrintMessage($"Bootstrap-Konfiguration konnte nicht geladen werden: {loadConfig.ErrorMessage}", 1, MsgType.Error);
+
+            var msg =
+                $"Starte Job-Session...\n" +
+                $"  Job       : {jobTypeName}\n" +
+                $"  Argumente : {(string.IsNullOrEmpty(arguments) ? "(keine)" : args[2])}\n";
+            PrintMessage(msg);
+
+            //
+            // Launch Session
+            //
+            var config = loadConfig.Value;
+            var jobRegistry = new SqlJobRegistry(config.SessionStoreConnectionString);
+            var launcher = new SessionLauncher.SessionLauncher(config, jobRegistry);
+
+            var result = launcher.LaunchSession(new SessionLaunchRequest
+            {
+                JobTypeName = jobTypeName,
+                Arguments = arguments,
+                CallerUser = Environment.UserName,
+                CallerDomain = Environment.UserDomainName,
+                CallerApplication = AppDomain.CurrentDomain.FriendlyName,
+                CallerMachine = Environment.MachineName
+            });
+
+            return !result.Succeeded
+                ? PrintMessage($"Session konnte nicht gestartet werden: {result.ErrorMessage}", 1, MsgType.Error)
+                : PrintMessage("Session gestartet.", 0, MsgType.Success);
+
         }
-        arguments = Convert.ToBase64String(File.ReadAllBytes(argFile));
+        catch (Exception ex)
+        {
+            return PrintMessage($"Unerwarteter Fehler beim Ausführen von CLI.exe: {ex.Message}", 1, MsgType.Error);
+        }
     }
 
-    var loadConfig = FileBootstrapConfig.Load(Path.Combine(AppContext.BaseDirectory, "..", FileBootstrapConfig.FileName));
-    if (!loadConfig.Succeeded)
+    private enum MsgType
     {
-        Console.ForegroundColor = ConsoleColor.Red;
-        Console.Error.WriteLine($"Bootstrap-Konfiguration konnte nicht geladen werden: {loadConfig.ErrorMessage}");
+        Info,
+        Success,
+        Error
+    }
+
+    private static int PrintMessage(string msg, int exitCode = 0, MsgType msgTyp = MsgType.Info)
+    {
+        Console.ForegroundColor = msgTyp switch
+        {
+            MsgType.Error => ConsoleColor.Red,
+            MsgType.Success => ConsoleColor.Green,
+            _ => ConsoleColor.White
+        };
+
+        if (msgTyp == MsgType.Error)
+            Console.Error.WriteLine(msg);
+        else
+            Console.WriteLine(msg);
+
         Console.ResetColor();
-        return 1;
+        return exitCode;
     }
 
-    var config       = loadConfig.Value;
-    var errorHandler = new SqlErrorHandler(config.SessionStoreConnectionString);
-    var jobRegistry  = new SqlJobRegistry(config.SessionStoreConnectionString);
-    var launcher     = new SessionLauncher(config, jobRegistry);
-
-    Console.WriteLine($"Starte Job-Session...");
-    Console.WriteLine($"  Job       : {jobTypeName}");
-    Console.WriteLine($"  Argumente : {(string.IsNullOrEmpty(arguments) ? "(keine)" : args[2])}");
-    Console.WriteLine();
-
-    var result = launcher.LaunchSession(new SessionStartRequest
-    {
-        JobTypeName       = jobTypeName,
-        Arguments         = arguments,
-        CallerUser        = Environment.UserName,
-        CallerDomain      = Environment.UserDomainName,
-        CallerApplication = AppDomain.CurrentDomain.FriendlyName,
-        CallerMachine     = Environment.MachineName
-    });
-
-    if (!result.Succeeded)
-    {
-        var msg = $"Session konnte nicht gestartet werden: {result.ErrorMessage}";
-        Console.ForegroundColor = ConsoleColor.Red;
-        Console.Error.WriteLine(msg);
-        Console.ResetColor();
-        errorHandler.Handle(result);
-        return 1;
-    }
-
-    Console.ForegroundColor = ConsoleColor.Green;
-    Console.WriteLine("Session gestartet.");
-    Console.ResetColor();
-    return 0;
 }
+
+
+

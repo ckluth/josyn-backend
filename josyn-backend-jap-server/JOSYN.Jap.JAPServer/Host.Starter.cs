@@ -16,6 +16,8 @@ namespace JOSYN.Jap.JAPServer;
 
 internal static partial class Host
 {
+    private const string JobRepositoryFolder = "JobRepository";
+
     internal static async Task<int> Run(string[] args)
     {
 #if DEBUG
@@ -40,7 +42,7 @@ internal static partial class Host
             Console.WriteLine("ARGS: " + string.Join(" | ", args));
 #endif
             // Mode dispatch: JOSYN-START or JOSYN-IPC
-            if (args.Length >= 2 && args[0] == "JOSYN-START")
+            if (args.Length >= 2 && args[0] == JapServerConstants.CliModeStart)
                 return await HandleSessionStart(args[1], config, errorHandler);
 
             var sessionKey = PipesProtocol.ParseSessionKeyCLIArguments(args);
@@ -107,11 +109,11 @@ internal static partial class Host
             return 1;
         }
 
-        var deserialize = PropertyBag.Deserialize<SessionStartRequest>(rawRequest);
+        var deserialize = PropertyBag.Deserialize<SessionStartSpec>(rawRequest);
         if (!deserialize.Succeeded)
         {
             errorHandler.Handle(
-                $"JOSYN-START: SessionStartRequest konnte nicht deserialisiert werden: {deserialize.ErrorMessage}",
+                $"JOSYN-START: SessionStartSpec konnte nicht deserialisiert werden: {deserialize.ErrorMessage}",
                 callStack: null, exceptionDetails: null);
             return 1;
         }
@@ -174,7 +176,7 @@ internal static partial class Host
         }
 
         // Build job exe path (needed for both JobVersion read and process spawn).
-        var jobExePath = Path.Combine(config.BackendRoot, "JobRepository", jobName, jobName + ".exe");
+        var jobExePath = Path.Combine(config.BackendRoot, JobRepositoryFolder, jobName, jobName + ".exe");
 
         // Transition to Preparing and record JobVersion in one write.
         SetPreparingWithVersion(sessionStore, sessionGuid, jobExePath, errorHandler, jobName);

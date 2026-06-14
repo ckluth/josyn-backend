@@ -1,11 +1,12 @@
 namespace JOSYN.Backend.Contracts;
 
 /// <summary>
-/// Describes a request to start a new job session.
-/// Produced by orchestrators (via <c>JOSYN.Backend.SessionLauncher</c>)
-/// and consumed by <c>JAPServer</c> in <c>JOSYN-START</c> mode.
+/// Complete, resolved specification for starting a job session.
+/// Built by <c>SessionLauncher</c> from a <see cref="SessionLaunchRequest"/>
+/// after resolving <c>TechnicalUserName</c> from <c>JobRegistry</c>.
+/// Serialized to a temp file and consumed by <c>JAPServer</c> in <c>JOSYN-START</c> mode.
 /// </summary>
-public record SessionStartRequest
+public record SessionStartSpec
 {
     /// <summary>The registered job type name.</summary>
     public string JobTypeName         { get; init; } = string.Empty;
@@ -20,7 +21,7 @@ public record SessionStartRequest
 
     /// <summary>
     /// Windows account name under which <c>job.exe</c> should be spawned.
-    /// Resolved from <c>JobRegistry</c> by <c>SessionLauncher</c> — not supplied by the caller.
+    /// Resolved from <c>JobRegistry</c> by <c>SessionLauncher</c>.
     /// </summary>
     public string TechnicalUserName   { get; init; } = string.Empty;
 
