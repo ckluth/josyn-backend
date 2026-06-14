@@ -1,4 +1,6 @@
+#pragma warning disable IDE0130
 namespace JOSYN.Backend.BootstrapConfig;
+#pragma warning restore IDE0130
 
 /// <summary>
 /// Bootstrap configuration contract for <c>josyn-backend</c>.

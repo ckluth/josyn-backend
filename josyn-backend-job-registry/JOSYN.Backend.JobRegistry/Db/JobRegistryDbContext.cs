@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 
+#pragma warning disable IDE0130
 namespace JOSYN.Backend.JobRegistry;
+#pragma warning restore IDE0130
 
 internal sealed class JobRegistryDbContext(string connectionString) : DbContext
 {

@@ -1,13 +1,15 @@
 using JOSYN.Backend.BootstrapConfig;
 using JOSYN.Backend.JobRegistry;
 using JOSYN.Backend.Contracts;
+using Launcher = JOSYN.Backend.SessionLauncher;
 
 namespace JOSYN.Backend.CLI;
 
 internal class Program
 {
     private static int Main(string[] args) { return RunJob(args); }
-
+    
+    private const string runJobArgument = "run-job";
     private static int RunJob(string[] args)
     {
         try
@@ -15,8 +17,8 @@ internal class Program
             //
             // Parse CLI Arguments
             //
-            if (args.Length < 2 || !string.Equals(args[0], "run-job", StringComparison.OrdinalIgnoreCase))
-                return PrintMessage("Verwendung: JOSYN.Backend.CLI.exe run-job <jobname> [<argumentdatei>]", 1,
+            if (args.Length < 2 || !string.Equals(args[0], runJobArgument, StringComparison.OrdinalIgnoreCase))
+                return PrintMessage($"Verwendung: JOSYN.Backend.CLI.exe {runJobArgument} <jobname> [<argumentdatei>]", 1,
                     MsgType.Error);
 
             var jobTypeName = args[1];
@@ -37,9 +39,9 @@ internal class Program
             //
             // Load Bootstrap Configuration
             //
-            var loadConfig = FileBootstrapConfig.Load(Path.Combine(AppContext.BaseDirectory, "..", FileBootstrapConfig.FileName));
-            if (!loadConfig.Succeeded)
-                return PrintMessage($"Bootstrap-Konfiguration konnte nicht geladen werden: {loadConfig.ErrorMessage}", 1, MsgType.Error);
+            var loadBootStrapConfig = FileBootstrapConfig.Load(Path.Combine(AppContext.BaseDirectory, "..", FileBootstrapConfig.FileName));
+            if (!loadBootStrapConfig.Succeeded)
+                return PrintMessage($"Bootstrap-Konfiguration konnte nicht geladen werden: {loadBootStrapConfig.ErrorMessage}", 1, MsgType.Error);
 
             var msg =
                 $"Starte Job-Session...\n" +
@@ -50,11 +52,10 @@ internal class Program
             //
             // Launch Session
             //
-            var config = loadConfig.Value;
-            var jobRegistry = new SqlJobRegistry(config.SessionStoreConnectionString);
-            var launcher = new SessionLauncher.SessionLauncher(config, jobRegistry);
-
-            var result = launcher.LaunchSession(new SessionLaunchRequest
+            var bootstrapConfig = loadBootStrapConfig.Value;
+            var jobRegistry = new SqlJobRegistry(bootstrapConfig.SessionStoreConnectionString);
+            
+            var result = Launcher.SessionLauncher.LaunchSession(new SessionLaunchRequest
             {
                 JobTypeName = jobTypeName,
                 Arguments = arguments,
@@ -62,7 +63,8 @@ internal class Program
                 CallerDomain = Environment.UserDomainName,
                 CallerApplication = AppDomain.CurrentDomain.FriendlyName,
                 CallerMachine = Environment.MachineName
-            });
+            }, 
+                bootstrapConfig.BackendRoot, jobRegistry);
 
             return !result.Succeeded
                 ? PrintMessage($"Session konnte nicht gestartet werden: {result.ErrorMessage}", 1, MsgType.Error)

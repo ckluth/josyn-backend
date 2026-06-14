@@ -1,8 +1,8 @@
 namespace JOSYN.Backend.Contracts;
 
 /// <summary>
-/// Deployment and launch-protocol constants shared between JAPServer and its spawners
-/// (<c>SessionLauncher</c>, <c>SessionStarter</c>).
+/// Deployment and launch-protocol constants shared between JAPServer and its spawner
+/// (<c>SessionLauncher</c>).
 /// </summary>
 public static class JapServerConstants
 {

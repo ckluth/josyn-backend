@@ -8,14 +8,11 @@ using JOSYN.Foundation.ResultPattern;
 namespace JOSYN.Backend.SessionLauncher;
 
 /// <inheritdoc/>
-public sealed class SessionLauncher(IBootstrapConfig bootstrapConfig, IJobRegistry jobRegistry) : ISessionLauncher
+public class SessionLauncher : ISessionLauncher
 {
-    private readonly IBootstrapConfig _bootstrapConfig = bootstrapConfig;
-
-    private string JapServerExePath => Path.Combine(_bootstrapConfig.BackendRoot, JapServerConstants.FolderName, JapServerConstants.ExeName);
-
-    /// <inheritdoc/>
-    public Result LaunchSession(SessionLaunchRequest request)
+    private const string tempFileNamePattern = "josyn-start-{0}.ini";
+    
+    public static Result LaunchSession(SessionLaunchRequest request, string backendRoot, IJobRegistry jobRegistry)
     {
         var jobCheck = jobRegistry.GetByName(request.JobTypeName);
         if (!jobCheck.Succeeded)
@@ -23,20 +20,20 @@ public sealed class SessionLauncher(IBootstrapConfig bootstrapConfig, IJobRegist
 
         var spec = new SessionStartSpec
         {
-            JobTypeName       = request.JobTypeName,
-            Arguments         = request.Arguments,
+            JobTypeName = request.JobTypeName,
+            Arguments = request.Arguments,
             TechnicalUserName = jobCheck.Value.TechnicalUserName,
-            CallerUser        = request.CallerUser,
-            CallerDomain      = request.CallerDomain,
+            CallerUser = request.CallerUser,
+            CallerDomain = request.CallerDomain,
             CallerApplication = request.CallerApplication,
-            CallerMachine     = request.CallerMachine
+            CallerMachine = request.CallerMachine
         };
+        
+        var japServerExePath = Path.Combine(backendRoot, JapServerConstants.FolderName, JapServerConstants.ExeName);
+        if (!File.Exists(japServerExePath))
+            return Result.Error($"JAPServer-Executable nicht gefunden: '{japServerExePath}'");
 
-        var exePath = JapServerExePath;
-        if (!File.Exists(exePath))
-            return Result.Error($"JAPServer-Executable nicht gefunden: '{exePath}'");
-
-        var tempFile = Path.Combine(Path.GetTempPath(), $"josyn-start-{Guid.NewGuid()}.ini");
+        var tempJobArgumentsFilePath = Path.Combine(Path.GetTempPath(), string.Format(tempFileNamePattern, Guid.NewGuid()));
 
         var serialize = PropertyBag.Serialize(spec);
         if (!serialize.Succeeded)
@@ -44,12 +41,12 @@ public sealed class SessionLauncher(IBootstrapConfig bootstrapConfig, IJobRegist
 
         try
         {
-            File.WriteAllText(tempFile, serialize.Value);
+            File.WriteAllText(tempJobArgumentsFilePath, serialize.Value);
 
             Process.Start(new ProcessStartInfo
             {
-                FileName = exePath,
-                Arguments = $"{JapServerConstants.CliModeStart} \"@{tempFile}\"",
+                FileName = japServerExePath,
+                Arguments = $"{JapServerConstants.CliModeStart} \"@{tempJobArgumentsFilePath}\"",
                 UseShellExecute = false
             });
 

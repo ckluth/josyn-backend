@@ -61,14 +61,6 @@ if %ERRORLEVEL% neq 0 (
     exit /b %ERRORLEVEL%
 )
 
-echo === JOSYN.Backend.SessionStarter ===
-dotnet build "%ROOT%\josyn-backend-session-starter\JOSYN.Backend.SessionStarter.slnx" --configuration %CONFIGURATION%
-if %ERRORLEVEL% neq 0 (
-    echo.
-    echo [FEHLER] Build fehlgeschlagen: JOSYN.Backend.SessionStarter. Exit-Code: %ERRORLEVEL%
-    exit /b %ERRORLEVEL%
-)
-
 echo === JOSYN.Backend.JobRegistry ===
 dotnet build "%ROOT%\josyn-backend-job-registry\JOSYN.Backend.JobRegistry.slnx" --configuration %CONFIGURATION%
 if %ERRORLEVEL% neq 0 (

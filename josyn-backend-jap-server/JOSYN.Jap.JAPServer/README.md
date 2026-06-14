@@ -14,14 +14,15 @@ nimmt JAP-Anfragen von Job-Executables entgegen, dispatcht sie an die
 
 ## Schnellstart
 
-Bauen und starten. Den IPC-Session-Key als Kommandozeilen-Argument übergeben:
+Der Server wird ausschließlich von `SessionLauncher` gestartet. Beim manuellen Testen
+den Aufruf wie folgt nachbilden:
 
 ```
-JOSYN.Jap.JAPServer.exe JOSYN-IPC <sessionKey>
+JOSYN.Jap.JAPServer.exe JOSYN-START @<path-to-session-start-spec.ini>
 ```
 
-Der Session-Key muss mit dem übereinstimmen, der an `PipesClient.ConnectAsync` auf der
-Job-Seite übergeben wird. Beim Demo-Betrieb übernimmt `demo.cmd` das automatisch.
+Die INI-Datei enthält eine serialisierte `SessionStartSpec` (via `PropertyBag`).
+Im Demo-Betrieb übernimmt `demo.cmd` das automatisch.
 
 ---
 
@@ -72,18 +73,15 @@ flowchart TD
 Alle Lösungen im Repo auf einmal:
 
 ```
-..\.local-build\build.cmd       # baut SessionStarter + JAPServer
+..\.local-build\build.cmd       # baut JAPServer + alle Backend-Pakete
 ```
 
 *(Kein `pack.cmd` — dies ist eine Exe, kein NuGet-Paket.)*
 
 ### Hinweise
 
-- **Session-Key via CLI:** Der Aufrufer übergibt `"JOSYN-IPC <sessionKey>"` als Argumente.
-- **Reconnect standardmäßig:** Der Server akzeptiert nach einem Client-Disconnect erneut
-  Verbindungen — bis ESC gedrückt wird.
-- **ESC-Abbruch:** ESC an der Konsole beendet den Server nach dem Abschluss der aktuellen
-  Verbindung.
+- **Session-Key via JOSYN-START:** Der Aufrufer übergibt `"JOSYN-START @<path>"` als Argumente.
+  JAPServer liest die `SessionStartSpec`-Datei, löscht sie sofort und startet den Session-Lifecycle.
 - **`FakeReadArgumentsFromFile`** — hardcoded; bewusst, kein Bug.
 - **Demo-Session-Key:** `dea5611d-d740-437f-ad93-7a5dc5ae4299` (hardcoded in `launchSettings.json`).
 - **Fehlermeldungen sind auf Deutsch** — projekt-weite Konvention.

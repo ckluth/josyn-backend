@@ -1,7 +1,11 @@
+using JOSYN.Backend.BootstrapConfig;
 using JOSYN.Backend.Contracts;
+using JOSYN.Backend.JobRegistry;
 using JOSYN.Foundation.ResultPattern;
 
+#pragma warning disable IDE0130
 namespace JOSYN.Backend.SessionLauncher;
+#pragma warning restore IDE0130
 
 /// <summary>
 /// Orchestrator-side launcher for JOSYN job sessions.
@@ -16,5 +20,7 @@ public interface ISessionLauncher
     /// and spawns JAPServer.
     /// </summary>
     /// <param name="request">The session launch request from the orchestrator.</param>
-    Result LaunchSession(SessionLaunchRequest request);
+    /// <param name="backendRoot">The backend root path for locating JAPServer.exe.</param> 
+    /// <param name="jobRegistry">The job registry.</param>
+    public static abstract Result LaunchSession(SessionLaunchRequest request, string backendRoot, IJobRegistry jobRegistry);
 }
