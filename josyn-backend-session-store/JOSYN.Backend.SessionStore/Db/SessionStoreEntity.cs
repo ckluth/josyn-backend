@@ -24,10 +24,8 @@ internal sealed class SessionStoreEntity
     public string   ExecutionStatus   { get; set; } = string.Empty;
     public string?  Progress          { get; set; }
     public DateTime? Finished         { get; set; }
-    public int      JapServerProcess  { get; set; }
+    public int      JapServerProcessId { get; set; }
     public int      JobHostProcessId  { get; set; }
-    public int      JapExitCode       { get; set; }
-    public int      JobExitCode       { get; set; }
     public DateTime? LastWriteTime    { get; set; }
-    public string?  WrittenBy         { get; set; }
+    public string?  Host              { get; set; }
 }

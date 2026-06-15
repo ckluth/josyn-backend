@@ -34,15 +34,11 @@ public sealed record JobSessionRecord : IJobSessionRecord
     /// <inheritdoc/>
     public          DateTime?       Finished          { get; init; }
     /// <inheritdoc/>
-    public required int             JapServerProcess  { get; init; }
+    public required int             JapServerProcessId { get; init; }
     /// <inheritdoc/>
     public required int             JobHostProcessId  { get; init; }
     /// <inheritdoc/>
-    public required int             JapExitCode       { get; init; }
-    /// <inheritdoc/>
-    public required int             JobExitCode       { get; init; }
-    /// <inheritdoc/>
     public          DateTime?       LastWriteTime     { get; init; }
     /// <inheritdoc/>
-    public          string?         WrittenBy         { get; init; }
+    public          string?         Host              { get; init; }
 }

@@ -27,12 +27,10 @@ public sealed class SessionStore(string connectionString) : ISessionStore
                 ExecutionStatus   = ExecutionStatusParser.Serialize(jobSession.ExecutionStatus),
                 Progress          = jobSession.Progress,
                 Finished          = jobSession.Finished,
-                JapServerProcess  = jobSession.JapServerProcess,
+                JapServerProcessId = jobSession.JapServerProcessId,
                 JobHostProcessId  = jobSession.JobHostProcessId,
-                JapExitCode       = jobSession.JapExitCode,
-                JobExitCode       = jobSession.JobExitCode,
                 LastWriteTime     = DateTime.Now,
-                WrittenBy         = jobSession.WrittenBy
+                Host              = jobSession.Host
             });
             ctx.SaveChanges();
             return Result.Success;
@@ -72,12 +70,10 @@ public sealed class SessionStore(string connectionString) : ISessionStore
                 ExecutionStatus   = parseStatus.Value,
                 Progress          = entity.Progress,
                 Finished          = entity.Finished,
-                JapServerProcess  = entity.JapServerProcess,
+                JapServerProcessId = entity.JapServerProcessId,
                 JobHostProcessId  = entity.JobHostProcessId,
-                JapExitCode       = entity.JapExitCode,
-                JobExitCode       = entity.JobExitCode,
                 LastWriteTime     = entity.LastWriteTime,
-                WrittenBy         = entity.WrittenBy
+                Host              = entity.Host
             };
         }
         catch (Exception ex) { return ex; }
@@ -106,12 +102,10 @@ public sealed class SessionStore(string connectionString) : ISessionStore
             entity.ExecutionStatus   = ExecutionStatusParser.Serialize(jobSession.ExecutionStatus);
             entity.Progress          = jobSession.Progress;
             entity.Finished          = jobSession.Finished;
-            entity.JapServerProcess  = jobSession.JapServerProcess;
+            entity.JapServerProcessId = jobSession.JapServerProcessId;
             entity.JobHostProcessId  = jobSession.JobHostProcessId;
-            entity.JapExitCode       = jobSession.JapExitCode;
-            entity.JobExitCode       = jobSession.JobExitCode;
             entity.LastWriteTime     = DateTime.Now;
-            entity.WrittenBy         = jobSession.WrittenBy;
+            entity.Host              = jobSession.Host;
             ctx.SaveChanges();
             return Result.Success;
         }

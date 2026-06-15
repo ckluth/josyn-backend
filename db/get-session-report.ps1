@@ -19,8 +19,8 @@ SELECT TOP ($Top)
     Id, UID, JobTypeName, Arguments, Result,
     JobVersion, UserName, UserDomain, ClientApplication, ClientMachine,
     TecUser, Started, ExecutionStatus, Progress, Finished,
-    JapServerProcess, JobHostProcessId, JapExitCode, JobExitCode,
-    LastWriteTime, WrittenBy
+    JapServerProcessId, JobHostProcessId,
+    LastWriteTime, Host
 FROM josyn.SessionStore
 ORDER BY Id DESC
 "@
@@ -115,12 +115,10 @@ else {
         $lines.Add("| ExecutionStatus   | $($row["ExecutionStatus"]) |")
         $lines.Add("| Progress          | $(NullOr $row "Progress") |")
         $lines.Add("| Finished          | $(Ts $row "Finished") |")
-        $lines.Add("| JapServerProcess  | $($row["JapServerProcess"]) |")
-        $lines.Add("| JobHostProcessId  | $($row["JobHostProcessId"]) |")
-        $lines.Add("| JapExitCode       | $($row["JapExitCode"]) |")
-        $lines.Add("| JobExitCode       | $($row["JobExitCode"]) |")
-        $lines.Add("| LastWriteTime     | $(Ts $row "LastWriteTime") |")
-        $lines.Add("| WrittenBy         | $(NullOr $row "WrittenBy") |")
+        $lines.Add("| JapServerProcessId | $($row["JapServerProcessId"]) |")
+        $lines.Add("| JobHostProcessId   | $($row["JobHostProcessId"]) |")
+        $lines.Add("| LastWriteTime      | $(Ts $row "LastWriteTime") |")
+        $lines.Add("| Host              | $(NullOr $row "Host") |")
         $lines.Add("")
         $lines.Add("**Arguments**")
         $lines.Add("")

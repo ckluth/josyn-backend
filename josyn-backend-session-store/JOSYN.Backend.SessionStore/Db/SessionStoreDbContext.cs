@@ -29,11 +29,9 @@ internal sealed class SessionStoreDbContext(string connectionString) : DbContext
             e.Property(x => x.Started).IsRequired();
             e.Property(x => x.ExecutionStatus).IsRequired().HasMaxLength(32).IsUnicode(false);
             e.Property(x => x.Progress).HasMaxLength(512).IsUnicode(false);
-            e.Property(x => x.JapServerProcess).IsRequired();
+            e.Property(x => x.JapServerProcessId).IsRequired();
             e.Property(x => x.JobHostProcessId).IsRequired();
-            e.Property(x => x.JapExitCode).IsRequired();
-            e.Property(x => x.JobExitCode).IsRequired();
-            e.Property(x => x.WrittenBy).HasMaxLength(64).IsUnicode(false);
+            e.Property(x => x.Host).HasMaxLength(64).IsUnicode(false);
         });
     }
 }

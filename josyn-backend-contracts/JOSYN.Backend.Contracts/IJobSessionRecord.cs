@@ -34,15 +34,11 @@ public interface IJobSessionRecord
     /// <summary>Timestamp when the session finished; <see langword="null"/> if the session is still running.</summary>
     DateTime?       Finished          { get; init; }
     /// <summary>Process ID of the JAP server process that hosted the session.</summary>
-    int             JapServerProcess  { get; init; }
+    int             JapServerProcessId { get; init; }
     /// <summary>Process ID of the job host process.</summary>
     int             JobHostProcessId  { get; init; }
-    /// <summary>Exit code reported by the JAP server process.</summary>
-    int             JapExitCode       { get; init; }
-    /// <summary>Exit code reported by the job host process.</summary>
-    int             JobExitCode       { get; init; }
     /// <summary>Timestamp of the last write to this record; <see langword="null"/> if the record has never been persisted.</summary>
     DateTime?       LastWriteTime     { get; init; }
-    /// <summary>Identifier of the component that last wrote this record; <see langword="null"/> if the record has never been persisted.</summary>
-    string?         WrittenBy         { get; init; }
+    /// <summary>Identifier of the host component that last wrote this record; <see langword="null"/> if the record has never been persisted.</summary>
+    string?         Host              { get; init; }
 }

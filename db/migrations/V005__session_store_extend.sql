@@ -19,10 +19,8 @@ ALTER TABLE [josyn].[SessionStore]
         [ExecutionStatus]   VARCHAR(32)  NOT NULL CONSTRAINT [DF_Session_ExecutionStatus]   DEFAULT ('preparing'),
         [Progress]          VARCHAR(512) NULL,
         [Finished]          DATETIME2    NULL,
-        [JapServerProcess]  INT          NOT NULL CONSTRAINT [DF_Session_JapServerProcess]  DEFAULT ((0)),
-        [JobHostProcessId]  INT          NOT NULL CONSTRAINT [DF_Session_JobHostProcessId]  DEFAULT ((0)),
-        [JapExitCode]       INT          NOT NULL CONSTRAINT [DF_Session_JapExitCode]       DEFAULT ((0)),
-        [JobExitCode]       INT          NOT NULL CONSTRAINT [DF_Session_JobExitCode]       DEFAULT ((0)),
-        [LastWriteTime]     DATETIME2    NULL,
-        [WrittenBy]         VARCHAR(64)  NULL;
+        [JapServerProcessId] INT          NOT NULL CONSTRAINT [DF_Session_JapServerProcessId] DEFAULT ((0)),
+        [JobHostProcessId]   INT          NOT NULL CONSTRAINT [DF_Session_JobHostProcessId]  DEFAULT ((0)),
+        [LastWriteTime]      DATETIME2    NULL,
+        [Host]              VARCHAR(64)  NULL;
 GO
