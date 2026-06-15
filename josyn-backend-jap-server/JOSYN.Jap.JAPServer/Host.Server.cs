@@ -35,13 +35,20 @@ internal static partial class Host
         IErrorHandler errorHandler, string? jobName = null)
     {
         var get = sessionStore.GetSession(sessionGuid);
-        if (!get.Succeeded) { errorHandler.Handle(get.ToResult(), jobName: jobName, sessionGuid: sessionGuid); return; }
+        if (!get.Succeeded)
+        {
+            errorHandler.Handle(get.ToResult(), jobName: jobName, sessionGuid: sessionGuid); 
+            return;
+        }
+
         var updated = (JobSessionRecord)get.Value with
         {
             ExecutionStatus = status,
             Finished        = DateTime.Now
         };
+
         var save = sessionStore.UpdateSession(updated);
+
         if (!save.Succeeded) errorHandler.Handle(save, jobName: jobName, sessionGuid: sessionGuid);
     }
 }

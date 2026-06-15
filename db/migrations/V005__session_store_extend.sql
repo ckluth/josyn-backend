@@ -16,7 +16,7 @@ ALTER TABLE [josyn].[SessionStore]
         [ClientMachine]     VARCHAR(64)  NOT NULL CONSTRAINT [DF_Session_ClientMachine]     DEFAULT (''),
         [TecUser]           VARCHAR(64)  NULL,
         [Started]           DATETIME2    NOT NULL CONSTRAINT [DF_Session_Started]           DEFAULT (GETUTCDATE()),
-        [ExecutionStatus]   VARCHAR(32)  NOT NULL CONSTRAINT [DF_Session_ExecutionStatus]   DEFAULT ('pending'),
+        [ExecutionStatus]   VARCHAR(32)  NOT NULL CONSTRAINT [DF_Session_ExecutionStatus]   DEFAULT ('preparing'),
         [Progress]          VARCHAR(512) NULL,
         [Finished]          DATETIME2    NULL,
         [JapServerProcess]  INT          NOT NULL CONSTRAINT [DF_Session_JapServerProcess]  DEFAULT ((0)),

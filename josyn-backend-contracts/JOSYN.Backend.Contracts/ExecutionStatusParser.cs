@@ -16,7 +16,6 @@ public static class ExecutionStatusParser
     public static Result<ExecutionStatus> Parse(string value) =>
         value switch
         {
-            "pending"                        => ExecutionStatus.Pending,
             "preparing"                      => ExecutionStatus.Preparing,
             "running"                        => ExecutionStatus.Running,
             "running-cancellation-requested" => ExecutionStatus.RunningCancellationRequested,
@@ -36,7 +35,6 @@ public static class ExecutionStatusParser
     public static string Serialize(ExecutionStatus status) =>
         status switch
         {
-            ExecutionStatus.Pending                      => "pending",
             ExecutionStatus.Preparing                    => "preparing",
             ExecutionStatus.Running                      => "running",
             ExecutionStatus.RunningCancellationRequested => "running-cancellation-requested",

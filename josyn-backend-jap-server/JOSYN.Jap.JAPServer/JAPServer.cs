@@ -16,34 +16,28 @@ internal sealed class JAPServer(
     IErrorHandler  errorHandler,
     IConfigStore   configStore) : IJosynApplicationProtocol
 {
-    private readonly TaskCompletionSource<bool> _negotiationGate =
-        new(TaskCreationOptions.RunContinuationsAsynchronously);
+    private readonly TaskCompletionSource<bool> negotiationGate = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
-    /// <summary>
-    /// Completes when <see cref="AcceptSession"/> or <see cref="RejectSession"/> is called.
-    /// <c>true</c> = accepted; <c>false</c> = rejected.
-    /// Awaited by Host with a timeout to enforce the 30-second negotiation window.
-    /// </summary>
-    internal Task<bool> NegotiationOutcome => _negotiationGate.Task;
+    internal Task<bool> NegotiationOutcome => negotiationGate.Task;
 
     /// <summary>True if a terminal status was already set by a protocol call.</summary>
     internal bool TerminalStatusSet { get; private set; }
 
     // -------------------------------------------------------------------------
-    // Session start negotiation
+    // IJosynApplicationProtocol / Session start negotiation
     // -------------------------------------------------------------------------
 
     Task<Result> IJosynApplicationProtocol.AcceptSession()
     {
         SetStatus(ExecutionStatus.Running);
-        _negotiationGate.TrySetResult(true);
+        negotiationGate.TrySetResult(true);
         return Task.FromResult(Result.Success);
     }
 
     Task<Result> IJosynApplicationProtocol.RejectSession()
     {
         SetTerminalStatus(ExecutionStatus.FinishedRejected);
-        _negotiationGate.TrySetResult(false);
+        negotiationGate.TrySetResult(false);
         return Task.FromResult(Result.Success);
     }
 
@@ -57,7 +51,7 @@ internal sealed class JAPServer(
     }
 
     // -------------------------------------------------------------------------
-    // Job execution
+    // IJosynApplicationProtocol / Job execution
     // -------------------------------------------------------------------------
 
     Task<Result<string>> IJosynApplicationProtocol.GetRawArguments()

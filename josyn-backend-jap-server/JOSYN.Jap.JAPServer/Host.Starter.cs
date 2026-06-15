@@ -11,13 +11,19 @@ using JOSYN.Foundation.ResultPattern;
 using JOSYN.Jap.Contract;
 using System.Diagnostics;
 using System.Text;
+#pragma warning disable CA1859
 
 namespace JOSYN.Jap.JAPServer;
 
 internal static partial class Host
 {
     private const string JobRepositoryFolder = "JobRepository";
-
+    
+    /// <summary>
+    /// The JAP-Server-Entrypoint fpr running a new Job-Session...
+    /// </summary>
+    /// <param name="args"></param>
+    /// <returns></returns>
     internal static async Task<int> Run(string[] args)
     {
         var bootStrapConfig = LoadBootstrapConfig();
@@ -37,176 +43,191 @@ internal static partial class Host
     }
 
     /// <summary>
-    /// Verarbeitet den JOSYN-START-Modus: Liest die SessionStartSpec aus der übergebenen Temp-Datei, führt die Turnstile-Logik für die Session-Akzeptanz durch, startet den JAPServer und verhandelt die Parallel-Execution-Allowance mit dem Job.exe.
+    /// Verarbeitet den JOSYN-START-Modus: Liest die SessionStartSpec, führt die Turnstile-Logik
+    /// für die Session-Akzeptanz durch und wartet nach dem Turnstile auf den JAP-Serve-Loop.
     /// </summary>
-    /// <param name="sessionStartSpecFilepath"></param>
-    /// <param name="bootStrapConfig"></param>
-    /// <param name="errorHandler"></param>
-    /// <returns></returns>
-#pragma warning disable CA1859
     private static async Task<int> ProcessSessionStart(string sessionStartSpecFilepath, IBootstrapConfig bootStrapConfig, IErrorHandler errorHandler)
-#pragma warning restore CA1859
     {
         var getSpec = GetSessionStartSpec(sessionStartSpecFilepath);
-        if (!getSpec.Succeeded)
-        {
-            errorHandler.Handle(getSpec.ToResult());
-            return 1;
-        }
+        if (!getSpec.Succeeded) { errorHandler.Handle(getSpec.ToResult()); return 1; }
         var startSpec = getSpec.Value;
-        
-        
-        var getPlainArguments = Base64DecodeArgumentsString(startSpec.Arguments);
-        if (!getPlainArguments.Succeeded)
-        {
-            errorHandler.Handle(getPlainArguments.ToResult());
-            return 1;
-        }
-        
-        
-        var sessionStore = new SessionStore(bootStrapConfig.SessionStoreConnectionString);
-        var jobName = startSpec.JobTypeName;
-        var jobExePath = Path.Combine(bootStrapConfig.BackendRoot, JobRepositoryFolder, jobName, jobName + ".exe");
 
+        var getPlainArguments = Base64DecodeArgumentsString(startSpec.Arguments);
+        if (!getPlainArguments.Succeeded) { errorHandler.Handle(getPlainArguments.ToResult()); return 1; }
+
+        var sessionStore = new SessionStore(bootStrapConfig.SessionStoreConnectionString);
+        var jobName      = startSpec.JobTypeName;
+        var jobExePath   = Path.Combine(bootStrapConfig.BackendRoot, JobRepositoryFolder, jobName, jobName + ".exe");
+
+        //
         // Turnstile scope: GUID allocation → session persistence → spawn → accept/reject negotiation.
         // Released only when the session is definitively in-flight (running) or closed (finished-rejected).
-        // ADR-017B-01 §4, ADR-018B-01 §6.
-
-        var sessionGuid = Guid.Empty;
-        var shouldCancelServer = false;
-        Task<Result>? serverTask = null;
-        JAPServer? japServer = null;
-        var negotiationAccepted = false;
-        var innerError = Result.Success;
-
-        var turnstileResult = await Turnstile.RunAsync(jobName, async () =>
-        {
-            sessionGuid = Guid.NewGuid();
-            var save = sessionStore.SaveNewSession(new JobSessionRecord
-            {
-                UID = sessionGuid,
-                JobTypeName = jobName,
-                Arguments = getPlainArguments.Value,
-                Result = string.Empty,
-                JobVersion = string.Empty,
-                UserName = startSpec.CallerUser,
-                UserDomain = startSpec.CallerDomain,
-                ClientApplication = startSpec.CallerApplication,
-                ClientMachine = startSpec.CallerMachine,
-                TecUser = startSpec.TechnicalUserName,
-                Started = DateTime.Now,
-                ExecutionStatus = ExecutionStatus.Pending,
-                JapServerProcess = 0,
-                JobHostProcessId = 0,
-                JapExitCode = 0,
-                JobExitCode = 0
-            });
-            if (!save.Succeeded)
-            {
-                sessionGuid = Guid.Empty; // record was never persisted — no valid session to reference
-                innerError = save;
-                return;
-            }
-
-            SetPreparingWithVersion(sessionStore, sessionGuid, jobExePath, errorHandler, jobName);
-
-            var getSource = ResolveConfigSource(bootStrapConfig);
-            if (!getSource.Succeeded)
-            {
-                SetTerminalStatus(sessionStore, sessionGuid, ExecutionStatus.FinishedFaulted, errorHandler, jobName);
-                innerError = getSource.ToResult();
-                return;
-            }
-            var configStore = new ConfigStore(getSource.Value, bootStrapConfig.SessionStoreConnectionString);
-
-            japServer = new JAPServer(sessionStore, sessionGuid, jobName, errorHandler, configStore);
-            var dispatcherResult = new JipDispatcher().RegisterAll<IJosynApplicationProtocol>(japServer);
-            if (!dispatcherResult.Succeeded)
-            {
-                SetTerminalStatus(sessionStore, sessionGuid, ExecutionStatus.FinishedFaulted, errorHandler, jobName);
-                innerError = dispatcherResult.ToResult();
-                return;
-            }
-            var jipDispatcher = dispatcherResult.Value;
-
-            var serverStartArguments = new ServerStartArguments
-            {
-                ClientExePath = jobExePath,
-                ConnectionTimeout = TimeSpan.FromMinutes(1),
-                HandleStringRequest = requestStr => HandleRequest(jipDispatcher, requestStr),
-                SessionKey = sessionGuid,
-                HandleErrorNotification = (req, ex) => HandleHandlerError(req, ex, jobName, sessionGuid, errorHandler),
-                IsCancellationRequested = () => Task.FromResult(shouldCancelServer)
-            };
-
-            serverTask = PipesServer.RunAsync(serverStartArguments);
-
-            // Await negotiation outcome with 30-second timeout (ADR-018B-01 §5).
-            var winner = await Task.WhenAny(japServer.NegotiationOutcome, Task.Delay(TimeSpan.FromSeconds(30)));
-
-            if (winner != japServer.NegotiationOutcome)
-            {
-                // Timeout — job.exe never called AcceptSession or RejectSession.
-                LocalLog.WriteError($"Negotiation timeout for session '{sessionGuid}' ({jobName}) — treating as rejected.");
-                SetTerminalStatus(sessionStore, sessionGuid, ExecutionStatus.FinishedRejected, errorHandler, jobName);
-                shouldCancelServer = true;
-                await serverTask;
-                serverTask = null;
-                return;
-            }
-
-            if (!japServer.NegotiationOutcome.Result)
-            {
-                // Rejected — JAPServer.RejectSession already set FinishedRejected.
-                shouldCancelServer = true;
-                await serverTask;
-                serverTask = null;
-                return;
-            }
-
-            // Accepted — JAPServer.AcceptSession already set Running.
-            // Turnstile releases here: session is definitively in-flight.
-            negotiationAccepted = true;
-        });
-
+        //
+        var ctx = new PrepareContext();
+        var turnstileResult = await Turnstile.RunAsync(jobName, () => Prepare(ctx, sessionStore, jobName, jobExePath, bootStrapConfig, startSpec, getPlainArguments.Value, errorHandler));
         if (!turnstileResult.Succeeded)
         {
-            errorHandler.Handle(
-                turnstileResult.ErrorMessage!,
-                callStack: null, exceptionDetails: null,
-                sessionGuid: sessionGuid == Guid.Empty ? null : sessionGuid);
+            errorHandler.Handle(turnstileResult, sessionGuid: ctx.SessionGuid == Guid.Empty ? null : ctx.SessionGuid);
             return 1;
         }
-
-        if (!innerError.Succeeded)
-        {
-            errorHandler.Handle(innerError, sessionGuid: sessionGuid);
-            return 1;
-        }
-
-        if (!negotiationAccepted)
-            return 0;
-
+        
+        if (!ctx.InnerError.Succeeded) { errorHandler.Handle(ctx.InnerError, sessionGuid: ctx.SessionGuid); return 1; }
+        if (!ctx.NegotiationAccepted)  return 0;
+        
+        //
         // Session accepted and running — await JAP serve loop.
-        var res = await serverTask!;
-
+        // ServerTask is non-null: assigned in PrepareServer and only nulled in the
+        // timeout/rejected early-return branches, both of which exit before
+        // NegotiationAccepted can be set to true. The guard above ensures we only
+        // reach this line via the accepted path.
+        //
+        var res = await ctx.ServerTask!;
+        
+        //
+        // Finalization
+        //
         if (!res.Succeeded)
         {
-            if (!japServer!.TerminalStatusSet)
-                SetTerminalStatus(sessionStore, sessionGuid, ExecutionStatus.FinishedFaulted, errorHandler, jobName);
-            errorHandler.Handle(res, jobName: jobName, sessionGuid: sessionGuid);
+            if (!ctx.JapServer!.TerminalStatusSet)
+                SetTerminalStatus(sessionStore, ctx.SessionGuid, ExecutionStatus.FinishedFaulted, errorHandler, jobName);
+            errorHandler.Handle(res, jobName: jobName, sessionGuid: ctx.SessionGuid);
             return 1;
         }
 
-        if (!japServer!.TerminalStatusSet)
-            SetTerminalStatus(sessionStore, sessionGuid, ExecutionStatus.FinishedSuccessfully, errorHandler, jobName);
+        if (!ctx.JapServer!.TerminalStatusSet)
+            SetTerminalStatus(sessionStore, ctx.SessionGuid, ExecutionStatus.FinishedSuccessfully, errorHandler, jobName);
 
         LocalLog.WriteInfo("Server terminiert.");
         return 0;
     }
 
-    #region Konsolidiert
     
+
+    // -------------------------------------------------------------------------
+    // PrepareContext — carries mutable outputs of the Prepare phase
+    // -------------------------------------------------------------------------
+
+    private sealed class PrepareContext
+    {
+        public Guid SessionGuid = Guid.Empty;
+        public bool ShouldCancelServer;
+        public Task<Result>? ServerTask;
+        public JAPServer? JapServer;
+        public bool NegotiationAccepted;
+        public Result InnerError = Result.Success;
+    }
+    
+    /// <summary>
+    /// Executes inside the Turnstile: allocates the session GUID, persists the session record,
+    /// starts the pipe server and awaits the accept/reject negotiation outcome.
+    /// Writes all results into <paramref name="ctx"/>; never throws.
+    /// </summary>
+    private static async Task Prepare(
+        PrepareContext   ctx,
+        SessionStore     sessionStore,
+        string           jobName,
+        string           jobExePath,
+        IBootstrapConfig bootStrapConfig,
+        SessionStartSpec startSpec,
+        string           plainArguments,
+        IErrorHandler    errorHandler)
+    {
+        var jobVersion = string.Empty;
+        try { jobVersion = FileVersionInfo.GetVersionInfo(jobExePath).ProductVersion ?? string.Empty; }
+        catch { /* exe not found or version unreadable — version stays empty */ }
+
+        ctx.SessionGuid = Guid.NewGuid();
+        var save = sessionStore.SaveNewSession(new JobSessionRecord
+        {
+            UID               = ctx.SessionGuid,
+            JobTypeName       = jobName,
+            Arguments         = plainArguments,
+            Result            = string.Empty,
+            JobVersion        = jobVersion,
+            UserName          = startSpec.CallerUser,
+            UserDomain        = startSpec.CallerDomain,
+            ClientApplication = startSpec.CallerApplication,
+            ClientMachine     = startSpec.CallerMachine,
+            TecUser           = startSpec.TechnicalUserName,
+            Started           = DateTime.Now,
+            ExecutionStatus   = ExecutionStatus.Preparing,
+            JapServerProcess  = Environment.ProcessId,
+            JobHostProcessId  = 0,
+            JapExitCode       = 0,
+            JobExitCode       = 0,
+        });
+
+        if (!save.Succeeded)
+        {
+            ctx.SessionGuid = Guid.Empty; // record was never persisted — no valid session to reference
+            ctx.InnerError  = save;
+            return;
+        }
+
+        var getSource = ResolveConfigSource(bootStrapConfig);
+        if (!getSource.Succeeded)
+        {
+            SetTerminalStatus(sessionStore, ctx.SessionGuid, ExecutionStatus.FinishedFaulted, errorHandler, jobName);
+            ctx.InnerError = getSource.ToResult();
+            return;
+        }
+        var configStore = new ConfigStore(getSource.Value, bootStrapConfig.SessionStoreConnectionString);
+
+        ctx.JapServer = new JAPServer(sessionStore, ctx.SessionGuid, jobName, errorHandler, configStore);
+        var dispatcherResult = new JipDispatcher().RegisterAll<IJosynApplicationProtocol>(ctx.JapServer);
+        if (!dispatcherResult.Succeeded)
+        {
+            SetTerminalStatus(sessionStore, ctx.SessionGuid, ExecutionStatus.FinishedFaulted, errorHandler, jobName);
+            ctx.InnerError = dispatcherResult.ToResult();
+            return;
+        }
+        var jipDispatcher = dispatcherResult.Value;
+
+        var serverStartArguments = new ServerStartArguments
+        {
+            ClientExePath           = jobExePath,
+            ConnectionTimeout       = TimeSpan.FromMinutes(1),
+            HandleStringRequest     = requestStr => HandleRequest(jipDispatcher, requestStr),
+            SessionKey              = ctx.SessionGuid,
+            HandleErrorNotification = (req, ex) => HandleHandlerError(req, ex, jobName, ctx.SessionGuid, errorHandler),
+            IsCancellationRequested = () => Task.FromResult(ctx.ShouldCancelServer)
+        };
+
+        ctx.ServerTask = PipesServer.RunAsync(serverStartArguments);
+
+        //
+        // Await negotiation outcome with 30-second timeout 
+        //
+        var winner = await Task.WhenAny(ctx.JapServer.NegotiationOutcome, Task.Delay(TimeSpan.FromSeconds(30)));
+
+        if (winner != ctx.JapServer.NegotiationOutcome)
+        {
+            // Timeout — job.exe never called AcceptSession or RejectSession.
+            LocalLog.WriteError($"Negotiation timeout for session '{ctx.SessionGuid}' ({jobName}) — treating as rejected.");
+            SetTerminalStatus(sessionStore, ctx.SessionGuid, ExecutionStatus.FinishedRejected, errorHandler, jobName);
+            ctx.ShouldCancelServer = true;
+            await ctx.ServerTask;
+            ctx.ServerTask = null;
+            return;
+        }
+
+        if (!ctx.JapServer.NegotiationOutcome.Result)
+        {
+            // Rejected — JAPServer.RejectSession already set FinishedRejected.
+            ctx.ShouldCancelServer = true;
+            await ctx.ServerTask;
+            ctx.ServerTask = null;
+            return;
+        }
+
+        //
+        // Accepted — JAPServer.AcceptSession already set Running.
+        // Turnstile releases here: session is definitively in-flight.
+        //
+        ctx.NegotiationAccepted = true;
+    }
+    
+
     private static FileBootstrapConfig? LoadBootstrapConfig()
     {
         //
@@ -269,22 +290,5 @@ internal static partial class Host
         catch (Exception ex) { return ex; }
     }
 
-    #endregion
-
-    private static void SetPreparingWithVersion(SessionStore sessionStore, Guid sessionGuid, string jobExePath, IErrorHandler errorHandler, string jobName)
-    {
-        var version = string.Empty;
-        try { version = FileVersionInfo.GetVersionInfo(jobExePath).ProductVersion ?? string.Empty; }
-        catch { /* exe not found or version unreadable — version stays empty */ }
-
-        var get = sessionStore.GetSession(sessionGuid);
-        if (!get.Succeeded) { errorHandler.Handle(get.ToResult(), jobName: jobName, sessionGuid: sessionGuid); return; }
-        var updated = (JobSessionRecord)get.Value with
-        {
-            ExecutionStatus = ExecutionStatus.Preparing,
-            JobVersion = version
-        };
-        var save = sessionStore.UpdateSession(updated);
-        if (!save.Succeeded) errorHandler.Handle(save, jobName: jobName, sessionGuid: sessionGuid);
-    }
+    
 }
