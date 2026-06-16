@@ -20,7 +20,13 @@ internal sealed class JAPServer(
 
     internal Task<bool> NegotiationOutcome => negotiationGate.Task;
 
-    /// <summary>True if a terminal status was already set by a protocol call.</summary>
+    //
+    // TerminalStatusSet: True if a terminal status was already set by a protocol call.
+    // Guards against a double-write: the job can report its own final status via a JAP
+    // protocol message (handled inside the server task), while the entrypoint also writes
+    // a fallback terminal status after the task completes. Without this flag the entrypoint
+    // would overwrite the status that the protocol handler already persisted.
+    //
     internal bool TerminalStatusSet { get; private set; }
 
     // -------------------------------------------------------------------------

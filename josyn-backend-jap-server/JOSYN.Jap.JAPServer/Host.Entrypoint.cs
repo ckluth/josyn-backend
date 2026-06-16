@@ -103,7 +103,9 @@ internal static partial class Host
         var res = await ctx.ServerTask!;
 
         //
-        // Finalization
+        // Finalization — write terminal status only if the protocol did not already do so.
+        // The job may have reported its own final status via a JAP protocol message during
+        // the server task; writing again here would silently overwrite that value.
         //
         if (!res.Succeeded)
         {
