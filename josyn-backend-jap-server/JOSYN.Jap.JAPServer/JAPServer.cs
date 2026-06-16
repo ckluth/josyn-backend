@@ -14,7 +14,10 @@ internal sealed class JAPServer(
     Guid           sessionGuid,
     string         jobName,
     IErrorHandler  errorHandler,
-    IConfigStore   configStore) : IJosynApplicationProtocol
+    IConfigStore   configStore,
+#pragma warning disable CS9113 // populated by Phase 5 when concrete adapter call sites are added
+    AdapterManager adapterManager) : IJosynApplicationProtocol
+#pragma warning restore CS9113
 {
     private readonly TaskCompletionSource<bool> negotiationGate = new(TaskCreationOptions.RunContinuationsAsynchronously);
 

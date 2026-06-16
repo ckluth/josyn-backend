@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<OutputType>Library</OutputType>
+		<TargetFramework>net10.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+		<LangVersion>latest</LangVersion>
+		<AssemblyName>JOSYN.Backend.IdentityAdapter.Contract</AssemblyName>
+		<RootNamespace>JOSYN.Backend.IdentityAdapter.Contract</RootNamespace>
+		<PlatformTarget>AnyCPU</PlatformTarget>
+		<Version>1.0.0-preview01</Version>
+		<Company>HAEVG</Company>
+		<Authors>HAEVG SWE</Authors>
+		<Copyright>Copyright © 2026 HAEVG AG</Copyright>
+		<Description>JOSYN Backend IdentityAdapter Contract — JIP-Protokollkontrakt für den IdentityAdapter. Stellt IIdentityAdapter bereit (ADR-017B-03).</Description>
+		<PackageId>JOSYN.Backend.IdentityAdapter.Contract</PackageId>
+		<RepositoryType>git</RepositoryType>
+		<PackageProjectUrl>https://github.com/ckluth/JOSYN</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/ckluth/JOSYN</RepositoryUrl>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<NoWarn>$(NoWarn);CS1591</NoWarn>
+	</PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="JOSYN.Foundation.ResultPattern" Version="1.0.0-preview01"/>
+	</ItemGroup>
+	<ItemGroup>
+		<None Include="..\..\..\.gitignore" Visible="false"/>
+		<None Include="..\Directory.Build.props" Visible="false"/>
+		<None Include="..\nuget.config" Visible="false"/>
+	</ItemGroup>
+</Project>

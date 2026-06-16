@@ -10,8 +10,6 @@ namespace JOSYN.Backend.BootstrapConfig;
 /// <remarks>
 /// The active implementation is determined at startup. The built-in implementation
 /// reads from <c>josyn.bootstrap.ini</c> (see <see cref="FileBootstrapConfig"/>).
-/// HAEVG-specific or other deployment-specific implementations are loaded at runtime
-/// via the adapter mechanism defined in ADR-009.
 /// </remarks>
 public interface IBootstrapConfig
 {
@@ -26,10 +24,13 @@ public interface IBootstrapConfig
     string SessionStoreConnectionString { get; }
 
     /// <summary>
-    /// Fully qualified type name of the <c>IConfigSource</c> adapter to load at startup,
-    /// in the format <c>TypeName, AssemblyName</c>.
-    /// When <see langword="null"/>, the built-in <c>SqlConfigSource</c> is used.
-    /// The adapter assembly must be present in the <c>Adapters/</c> subfolder next to the backend executable.
+    /// Adapter EXE registrations, keyed by concern name.
+    /// Populated from the <c>[Adapters]</c> section of <c>josyn.bootstrap.ini</c>.
+    /// Each entry maps a concern (e.g. <c>"IdentityAdapter"</c>) to an EXE filename
+    /// within the <c>Adapters/</c> subfolder next to <c>JAPServer.exe</c>
+    /// (e.g. <c>"IdentityAdapter.exe"</c>).
+    /// Empty when the <c>[Adapters]</c> section is absent. Validation of required
+    /// adapters is the caller's responsibility.
     /// </summary>
-    string? ConfigSourceType { get; }
+    IReadOnlyDictionary<string, string> Adapters { get; }
 }

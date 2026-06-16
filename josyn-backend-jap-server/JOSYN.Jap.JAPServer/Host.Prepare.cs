@@ -2,6 +2,7 @@ using JOSYN.Backend.BootstrapConfig;
 using JOSYN.Backend.ConfigStore;
 using JOSYN.Backend.Contracts;
 using JOSYN.Backend.ErrorHandler;
+using JOSYN.Backend.IdentityAdapter.Contract;
 using JOSYN.Backend.SessionStore;
 using JOSYN.Commons.Log;
 using JOSYN.Foundation.JIP;
@@ -25,6 +26,7 @@ internal static partial class Host
         public IJipDispatcher? JipDispatcher;
         public bool NegotiationAccepted;
         public Result InnerError = Result.Success;
+        public string? TechnicalUserPassword;
     }
 
     //
@@ -47,11 +49,13 @@ internal static partial class Host
         IBootstrapConfig bootStrapConfig,
         SessionStartSpec startSpec,
         string           plainArguments,
-        IErrorHandler    errorHandler)
+        IErrorHandler    errorHandler,
+        AdapterManager   adapterManager)
     {
         var ctx = new PrepareContext();
         if (!CreateSessionRecord(ctx, sessionStore, jobName, jobExePath, startSpec, plainArguments)
-            || !BuildJapInfrastructure(ctx, sessionStore, jobName, bootStrapConfig, errorHandler)
+            || !BuildJapInfrastructure(ctx, sessionStore, jobName, bootStrapConfig, errorHandler, adapterManager)
+            || !await ResolveCredentials(ctx, sessionStore, jobName, startSpec.TechnicalUserName, adapterManager, errorHandler)
             || !LaunchJobAndStorePid(ctx, sessionStore, jobExePath, jobName, errorHandler)) return ctx;
         await RunNegotiation(ctx, sessionStore, jobName, errorHandler);
         return ctx;
@@ -131,21 +135,13 @@ internal static partial class Host
         SessionStore sessionStore,
         string jobName,
         IBootstrapConfig bootStrapConfig,
-        IErrorHandler errorHandler)
+        IErrorHandler errorHandler,
+        AdapterManager adapterManager)
     {
-        // Resolve the configuration source (e.g. file system path) from the bootstrap config.
-        // Required to construct the ConfigStore that backs JAP protocol handlers.
-        var getSource = ResolveConfigSource(bootStrapConfig);
-        if (!getSource.Succeeded)
-        {
-            SetTerminalStatus(sessionStore, ctx.SessionGuid, ExecutionStatus.FinishedFaulted, errorHandler, jobName);
-            ctx.InnerError = getSource.ToResult();
-            return false;
-        }
-        var configStore = new ConfigStore(getSource.Value, bootStrapConfig.SessionStoreConnectionString);
+        var configStore = new ConfigStore(bootStrapConfig.SessionStoreConnectionString);
 
         // Set up JAPServer with session info and register all JAP protocol handlers on the JIP dispatcher.
-        ctx.JapServer = new JAPServer(sessionStore, ctx.SessionGuid, jobName, errorHandler, configStore);
+        ctx.JapServer = new JAPServer(sessionStore, ctx.SessionGuid, jobName, errorHandler, configStore, adapterManager);
         var dispatcherResult = new JipDispatcher().RegisterAll<IJosynApplicationProtocol>(ctx.JapServer);
         if (!dispatcherResult.Succeeded)
         {
@@ -159,8 +155,38 @@ internal static partial class Host
     }
 
     //
-    // Launches the job executable and stores its process ID in the session record.
+    // Calls the IdentityAdapter to resolve the password for the TechnicalUserName.
+    // The password is stored in ctx for use during job.exe spawn.
     //
+    private static async Task<bool> ResolveCredentials(
+        PrepareContext ctx,
+        SessionStore   sessionStore,
+        string         jobName,
+        string         technicalUserName,
+        AdapterManager adapterManager,
+        IErrorHandler  errorHandler)
+    {
+        var getPipes = adapterManager.GetPipes(IdentityAdapterConcern);
+        if (!getPipes.Succeeded)
+        {
+            SetTerminalStatus(sessionStore, ctx.SessionGuid, ExecutionStatus.FinishedFaulted, errorHandler, jobName);
+            ctx.InnerError = getPipes.ToResult();
+            return false;
+        }
+
+        var getPassword = await JipClient.SendAsync(getPipes.Value, nameof(IIdentityAdapter.GetPassword), technicalUserName);
+        if (!getPassword.Succeeded)
+        {
+            SetTerminalStatus(sessionStore, ctx.SessionGuid, ExecutionStatus.FinishedFaulted, errorHandler, jobName);
+            ctx.InnerError = getPassword.ToResult();
+            return false;
+        }
+
+        ctx.TechnicalUserPassword = getPassword.Value;
+        return true;
+    }
+
+
     private static bool LaunchJobAndStorePid(
         PrepareContext ctx,
         SessionStore sessionStore,
@@ -168,6 +194,9 @@ internal static partial class Host
         string jobName,
         IErrorHandler errorHandler)
     {
+        // TODO (ADR-017B-03): replace with an impersonated Process.Start using
+        // ctx.TechnicalUserPassword and TechnicalUserName from the session record.
+        // ctx.TechnicalUserPassword is already resolved at this point.
         var launch = PipesServer.StartClientProcess(jobExePath, ctx.SessionGuid);
         if (!launch.Succeeded)
         {

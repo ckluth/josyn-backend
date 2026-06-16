@@ -36,8 +36,16 @@ internal static partial class Host
             return 1;
         }
 
+        var spawnAdapters = await SpawnAdapters(bootStrapConfig);
+        if (!spawnAdapters.Succeeded)
+        {
+            errorHandler.Handle(spawnAdapters.ToResult());
+            return 1;
+        }
+
+        using var adapterManager = spawnAdapters.Value;
         var sessionStartSpecFilepath = args[1];
-        return await ProcessSessionStart(sessionStartSpecFilepath, bootStrapConfig, errorHandler);
+        return await ProcessSessionStart(sessionStartSpecFilepath, bootStrapConfig, errorHandler, adapterManager);
 
         //
         // nested function
@@ -59,7 +67,7 @@ internal static partial class Host
     // Verarbeitet den JOSYN-START-Modus: Liest die SessionStartSpec, führt die Turnstile-Logik
     // für die Session-Akzeptanz durch und wartet nach dem Turnstile auf den JAP-Serve-Loop.
     //
-    private static async Task<int> ProcessSessionStart(string sessionStartSpecFilepath, IBootstrapConfig bootStrapConfig, IErrorHandler errorHandler)
+    private static async Task<int> ProcessSessionStart(string sessionStartSpecFilepath, IBootstrapConfig bootStrapConfig, IErrorHandler errorHandler, AdapterManager adapterManager)
     {
         var getSpec = GetSessionStartSpec(sessionStartSpecFilepath);
         if (!getSpec.Succeeded) { errorHandler.Handle(getSpec.ToResult()); return 1; }
@@ -76,7 +84,7 @@ internal static partial class Host
         // Turnstile scope: GUID allocation → session persistence → spawn → accept/reject negotiation.
         // Released only when the session is definitively in-flight (running) or closed (finished-rejected).
         //
-        var turnstileResult = await Turnstile.RunAsync<PrepareContext>(jobName, () => Prepare(sessionStore, jobName, jobExePath, bootStrapConfig, startSpec, getPlainArguments.Value, errorHandler));
+        var turnstileResult = await Turnstile.RunAsync<PrepareContext>(jobName, () => Prepare(sessionStore, jobName, jobExePath, bootStrapConfig, startSpec, getPlainArguments.Value, errorHandler, adapterManager));
         if (!turnstileResult.Succeeded)
         {
             errorHandler.Handle(turnstileResult.ToResult(), sessionGuid: null);

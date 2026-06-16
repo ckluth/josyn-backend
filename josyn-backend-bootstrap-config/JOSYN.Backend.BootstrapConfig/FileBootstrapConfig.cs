@@ -5,7 +5,9 @@ namespace JOSYN.Backend.BootstrapConfig;
 
 /// <summary>
 /// File-based implementation of <see cref="IBootstrapConfig"/>.
-/// Reads bootstrap values from a flat INI file (<c>josyn.bootstrap.ini</c>).
+/// Reads bootstrap values from an INI file (<c>josyn.bootstrap.ini</c>).
+/// The root (sectionless) keys hold core settings; the optional <c>[Adapters]</c>
+/// section maps adapter concern names to EXE filenames.
 /// </summary>
 /// <remarks>
 /// Use <see cref="Load"/> to create an instance. All required keys are validated
@@ -20,12 +22,14 @@ public sealed class FileBootstrapConfig : IBootstrapConfig
         nameof(IBootstrapConfig.SessionStoreConnectionString),
     ];
 
-    private readonly Dictionary<string, string> _values;
+    private readonly Dictionary<string, string> _root;
+    private readonly Dictionary<string, string> _adapters;
 
-    private FileBootstrapConfig(string backendRoot, Dictionary<string, string> values)
+    private FileBootstrapConfig(string backendRoot, Dictionary<string, string> root, Dictionary<string, string> adapters)
     {
         BackendRoot = backendRoot;
-        _values     = values;
+        _root       = root;
+        _adapters   = adapters;
     }
 
     /// <summary>
@@ -44,15 +48,18 @@ public sealed class FileBootstrapConfig : IBootstrapConfig
                 return Result.Error($"BackendRoot konnte nicht aus Pfad abgeleitet werden: '{path}'");
 
             var raw    = File.ReadAllText(path);
-            var parsed = IniDictionarySerializer.DeserializeSingleSection(raw);
+            var parsed = IniDictionarySerializer.Deserialize(raw);
             if (!parsed.Succeeded)
                 return Result<FileBootstrapConfig>.Propagate(parsed.ToResult<FileBootstrapConfig>());
 
-            var missing = RequiredKeys.Where(k => !parsed.Value.ContainsKey(k)).ToArray();
+            var root     = parsed.Value.TryGetValue(string.Empty, out var r) ? r : [];
+            var adapters = parsed.Value.TryGetValue("Adapters",   out var a) ? a : [];
+
+            var missing = RequiredKeys.Where(k => !root.ContainsKey(k)).ToArray();
             if (missing.Length > 0)
                 return Result.Error($"Fehlende Schlüssel in '{path}': {string.Join(", ", missing)}");
 
-            return new FileBootstrapConfig(backendRoot, parsed.Value);
+            return new FileBootstrapConfig(backendRoot, root, adapters);
         }
         catch (Exception ex) { return ex; }
     }
@@ -61,8 +68,8 @@ public sealed class FileBootstrapConfig : IBootstrapConfig
     public string BackendRoot { get; }
 
     /// <inheritdoc/>
-    public string SessionStoreConnectionString => _values[nameof(IBootstrapConfig.SessionStoreConnectionString)];
+    public string SessionStoreConnectionString => _root[nameof(IBootstrapConfig.SessionStoreConnectionString)];
 
     /// <inheritdoc/>
-    public string? ConfigSourceType => _values.TryGetValue(nameof(IBootstrapConfig.ConfigSourceType), out var v) ? v : null;
+    public IReadOnlyDictionary<string, string> Adapters => _adapters;
 }
