@@ -26,7 +26,8 @@ public class SessionLauncher : ISessionLauncher
             CallerUser = request.CallerUser,
             CallerDomain = request.CallerDomain,
             CallerApplication = request.CallerApplication,
-            CallerMachine = request.CallerMachine
+            CallerMachine = request.CallerMachine,
+            Interactive = request.Interactive
         };
         
         var japServerExePath = Path.Combine(backendRoot, JapServerConstants.FolderName, JapServerConstants.ExeName);

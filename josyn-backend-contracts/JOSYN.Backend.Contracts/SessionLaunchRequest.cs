@@ -30,4 +30,11 @@ public record SessionLaunchRequest
 
     /// <summary>Machine name of the caller process.</summary>
     public string CallerMachine       { get; init; } = string.Empty;
+
+    /// <summary>
+    /// When <see langword="true"/>, the spawned <c>job.exe</c> process is started with a
+    /// console window so that its output is visible to the caller (CLI / dev / debug use).
+    /// When <see langword="false"/> (default) the process runs headless — no console window.
+    /// </summary>
+    public bool Interactive           { get; init; } = false;
 }

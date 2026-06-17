@@ -5,6 +5,7 @@ using JOSYN.Backend.ErrorHandler;
 using JOSYN.Backend.IdentityAdapter.Contract;
 using JOSYN.Backend.SessionStore;
 using JOSYN.Commons.Helpers;
+using JOSYN.Commons.IdentityHelpers;
 using JOSYN.Commons.Log;
 using JOSYN.Foundation.JIP;
 using JOSYN.Foundation.ResultPattern;
@@ -72,7 +73,7 @@ internal static partial class Host
         if (!credentials.Succeeded)
             return new PrepareContext(sessionGuid, japServer, null, false, credentials.ToResult());
 
-        var launch = LaunchJobAndStorePid(sessionGuid, startSpec.TechnicalUserName, credentials.Value, sessionStore, jobExePath, jobName, errorHandler);
+        var launch = LaunchJobAndStorePid(sessionGuid, startSpec.TechnicalUserName, credentials.Value, sessionStore, jobExePath, jobName, errorHandler, startSpec.Interactive);
         if (!launch.Succeeded)
             return new PrepareContext(sessionGuid, japServer, null, false, launch);
 
@@ -199,7 +200,8 @@ internal static partial class Host
         SessionStore  sessionStore,
         string        jobExePath,
         string        jobName,
-        IErrorHandler errorHandler)
+        IErrorHandler errorHandler,
+        bool          interactive = false)
     {
         if (!OperatingSystem.IsWindows())
         {
@@ -215,7 +217,7 @@ internal static partial class Host
         }
 
         var arguments = PipesProtocol.CreateClientStartCLIArguments(sessionGuid.ToString());
-        var launch    = ImpersonatedProcess.Start(jobExePath, arguments, technicalUserPassword, parseCredential.Value);
+        var launch    = ImpersonatedProcess.Start(jobExePath, arguments, technicalUserPassword, parseCredential.Value, headless: !interactive);
         if (!launch.Succeeded)
         {
             SetTerminalStatus(sessionStore, sessionGuid, ExecutionStatus.FinishedFaulted, errorHandler, jobName);

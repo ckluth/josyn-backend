@@ -64,7 +64,8 @@ internal class Program
                 CallerUser = Environment.UserName,
                 CallerDomain = Environment.UserDomainName,
                 CallerApplication = AppDomain.CurrentDomain.FriendlyName,
-                CallerMachine = Environment.MachineName
+                CallerMachine = Environment.MachineName,
+                Interactive = true   // CLI-launched sessions are dev/debug/maintenance — keep console output visible
             }, 
                 bootstrapConfig.BackendRoot, jobRegistry);
 

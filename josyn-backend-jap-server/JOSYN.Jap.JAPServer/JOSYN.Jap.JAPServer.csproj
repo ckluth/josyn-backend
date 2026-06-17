@@ -23,6 +23,7 @@
 	<ItemGroup>
 		<PackageReference Include="JOSYN.Commons.Log"             Version="1.0.0-preview01"/>
 		<PackageReference Include="JOSYN.Commons.Helpers"            Version="1.0.0-preview01"/>
+		<PackageReference Include="JOSYN.Commons.IdentityHelpers"    Version="1.0.0-preview01"/>
 		<PackageReference Include="JOSYN.Backend.Contracts"         Version="1.0.0-preview01"/>
 		<PackageReference Include="JOSYN.Backend.ConfigStore"        Version="1.0.0-preview01"/>
 		<PackageReference Include="JOSYN.Backend.ErrorHandler"       Version="1.0.0-preview01"/>
