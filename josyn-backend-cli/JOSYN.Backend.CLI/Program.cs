@@ -39,7 +39,9 @@ internal class Program
             //
             // Load Bootstrap Configuration
             //
-            var loadBootStrapConfig = FileBootstrapConfig.Load(Path.Combine(AppContext.BaseDirectory, "..", FileBootstrapConfig.FileName));
+            // Convention: orchestrators live at depth 2 under the platform root (Orchestrators\<Name>\).
+            // bootstrap.ini lives at the platform root — two levels up.
+            var loadBootStrapConfig = FileBootstrapConfig.Load(Path.Combine(AppContext.BaseDirectory, "..", "..", FileBootstrapConfig.FileName));
             if (!loadBootStrapConfig.Succeeded)
                 return PrintMessage($"Bootstrap-Konfiguration konnte nicht geladen werden: {loadBootStrapConfig.ErrorMessage}", 1, MsgType.Error);
 

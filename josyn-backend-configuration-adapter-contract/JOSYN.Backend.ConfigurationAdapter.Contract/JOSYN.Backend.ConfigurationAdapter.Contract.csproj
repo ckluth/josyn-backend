@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<OutputType>Library</OutputType>
+		<TargetFramework>net10.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+		<LangVersion>latest</LangVersion>
+		<AssemblyName>JOSYN.Backend.ConfigurationAdapter.Contract</AssemblyName>
+		<RootNamespace>JOSYN.Backend.ConfigurationAdapter.Contract</RootNamespace>
+		<PlatformTarget>AnyCPU</PlatformTarget>
+		<Version>1.0.0-preview01</Version>
+		<Company>HAEVG</Company>
+		<Authors>HAEVG SWE</Authors>
+		<Copyright>Copyright © 2026 HAEVG AG</Copyright>
+		<Description>JOSYN Backend ConfigurationAdapter Contract — JIP protocol contract for the ConfigurationAdapter. Provides IConfigurationAdapter for retrieving configuration values from an out-of-process configuration store.</Description>
+		<PackageId>JOSYN.Backend.ConfigurationAdapter.Contract</PackageId>
+		<RepositoryType>git</RepositoryType>
+		<PackageProjectUrl>https://github.com/ckluth/JOSYN</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/ckluth/JOSYN</RepositoryUrl>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<NoWarn>$(NoWarn);CS1591</NoWarn>
+	</PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="JOSYN.Foundation.ResultPattern" Version="1.0.0-preview01"/>
+	</ItemGroup>
+	<ItemGroup>
+		<None Include="..\nuget.config" Visible="false"/>
+	</ItemGroup>
+</Project>

@@ -8,9 +8,10 @@ namespace JOSYN.Jap.JAPServer;
 
 internal static partial class Host
 {
-    private const string AdaptersFolder = "Adapters";
+    private const string AdaptersFolder = @"..\Adapters";
     private const string AdapterCliToken = "JOSYN-ADAPTER";
-    internal const string IdentityAdapterConcern = "IdentityAdapter";
+    internal const string IdentityAdapterConcern      = "IdentityAdapter";
+    internal const string ConfigurationAdapterConcern = "ConfigurationAdapter";
 
     /// <summary>
     /// Spawns all adapter EXEs declared in <paramref name="config"/> and establishes
@@ -42,11 +43,11 @@ internal static partial class Host
         //
         static async Task<Result<AdapterProcess>> SpawnAdapter(string concernName, string exeFileName, string adaptersDir)
         {
-            var exePath = Path.Combine(adaptersDir, exeFileName);
+            var exePath = Path.Combine(adaptersDir, concernName, exeFileName);
             if (!File.Exists(exePath))
                 return Result.Error(
                     $"Adapter-EXE für '{concernName}' nicht gefunden: '{exePath}'. " +
-                    $"Stelle sicher, dass die Datei im '{AdaptersFolder}/'-Ordner liegt.");
+                    $"Stelle sicher, dass die Datei im 'Adapters\\{concernName}\\'-Ordner liegt.");
 
             var sessionGuid = Guid.NewGuid();
             var arguments = $"{AdapterCliToken} {sessionGuid}";

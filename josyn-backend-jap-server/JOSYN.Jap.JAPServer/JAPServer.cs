@@ -1,8 +1,10 @@
 using System.Text.Json;
+using JOSYN.Backend.ConfigurationAdapter.Contract;
 using JOSYN.Backend.Contracts;
 using JOSYN.Backend.ConfigStore;
 using JOSYN.Backend.ErrorHandler;
 using JOSYN.Backend.SessionStore;
+using JOSYN.Foundation.JIP;
 using JOSYN.Foundation.PropertyBag;
 using JOSYN.Foundation.ResultPattern;
 using JOSYN.Jap.Contract;
@@ -15,9 +17,7 @@ internal sealed class JAPServer(
     string         jobName,
     IErrorHandler  errorHandler,
     IConfigStore   configStore,
-#pragma warning disable CS9113 // populated by Phase 5 when concrete adapter call sites are added
     AdapterManager adapterManager) : IJosynApplicationProtocol
-#pragma warning restore CS9113
 {
     private readonly TaskCompletionSource<bool> negotiationGate = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
@@ -119,6 +119,19 @@ internal sealed class JAPServer(
                 Result<RuntimeEnvironment>.Fail($"Ungültiger RuntimeEnvironment-Wert in ConfigStore: '{get.Value}'"));
 
         return Task.FromResult<Result<RuntimeEnvironment>>(env);
+    }
+
+    async Task<Result<string>> IJosynApplicationProtocol.GetConfigValue(string settingPath)
+    {
+        var getPipes = adapterManager.GetPipes(Host.ConfigurationAdapterConcern);
+        if (!getPipes.Succeeded)
+            return getPipes.ToResult<string>();
+
+        var get = await JipClient.SendAsync(getPipes.Value, nameof(IConfigurationAdapter.GetConfigValue), settingPath);
+        if (!get.Succeeded)
+            return get.ToResult<string>();
+
+        return get.Value ?? Result<string>.Fail("ConfigurationAdapter returned no value.");
     }
 
     // -------------------------------------------------------------------------
