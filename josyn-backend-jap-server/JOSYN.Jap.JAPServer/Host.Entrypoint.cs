@@ -35,7 +35,7 @@ internal static partial class Host
             errorHandler.Handle(err, null, null);
             return 1;
         }
-
+        
         var spawnAdapters = await SpawnAdapters(bootStrapConfig);
         if (!spawnAdapters.Succeeded)
         {

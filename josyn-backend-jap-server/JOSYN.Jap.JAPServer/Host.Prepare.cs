@@ -15,19 +15,23 @@ namespace JOSYN.Jap.JAPServer;
 internal static partial class Host
 {
     //
-    // PrepareContext — carries mutable outputs of the Prepare phase
+    // PrepareContext — immutable snapshot of the Prepare phase outputs.
+    // Constructed once at the end of Prepare; never mutated after construction.
     //
-    private sealed class PrepareContext
-    {
-        public Guid SessionGuid = Guid.Empty;
-        public bool ShouldCancelServer;
-        public Task<Result>? ServerTask;
-        public JAPServer? JapServer;
-        public IJipDispatcher? JipDispatcher;
-        public bool NegotiationAccepted;
-        public Result InnerError = Result.Success;
-        public string? TechnicalUserPassword;
-    }
+    private sealed record PrepareContext(
+        Guid          SessionGuid,
+        JAPServer?    JapServer,
+        Task<Result>? ServerTask,
+        bool          NegotiationAccepted,
+        Result        InnerError);
+
+    // Intermediate result of BuildJapInfrastructure — groups the two objects
+    // that are constructed together and both needed by subsequent phases.
+    private sealed record JapInfrastructure(JAPServer JapServer, IJipDispatcher JipDispatcher);
+
+    // Outcome of the negotiation phase — either the running server task (accepted)
+    // or null (timeout / rejected, server already awaited and torn down).
+    private sealed record NegotiationOutcome(Task<Result>? ServerTask, bool Accepted);
 
     //
     // Executes inside the Turnstile: allocates the session GUID, persists the session record,
@@ -38,9 +42,8 @@ internal static partial class Host
     // so the outer Result layer is provided by the Turnstile (covers timeout and unhandled exceptions).
     // Internal failures — those that are anticipated and handled — are recorded in ctx.InnerError,
     // which the caller inspects after the Turnstile returns successfully.
-    // A phase that fails sets ctx.InnerError and returns false; subsequent phases are skipped.
-    // The ctx is always returned, even on failure, so the caller always has access to partial state
-    // (e.g. ctx.SessionGuid for error logging).
+    // Each phase returns its output via Result<T>; Prepare threads these as inputs to the next
+    // phase and constructs an immutable PrepareContext at the very end.
     //
     private static async Task<PrepareContext> Prepare(
         SessionStore     sessionStore,
@@ -52,62 +55,70 @@ internal static partial class Host
         IErrorHandler    errorHandler,
         AdapterManager   adapterManager)
     {
-        var ctx = new PrepareContext();
-        if (!CreateSessionRecord(ctx, sessionStore, jobName, jobExePath, startSpec, plainArguments)
-            || !BuildJapInfrastructure(ctx, sessionStore, jobName, bootStrapConfig, errorHandler, adapterManager)
-            || !await ResolveCredentials(ctx, sessionStore, jobName, startSpec.TechnicalUserName, adapterManager, errorHandler)
-            || !LaunchJobAndStorePid(ctx, sessionStore, jobExePath, jobName, errorHandler)) return ctx;
-        await RunNegotiation(ctx, sessionStore, jobName, errorHandler);
-        return ctx;
+        var createSession = CreateSessionRecord(sessionStore, jobName, jobExePath, startSpec, plainArguments);
+        if (!createSession.Succeeded)
+            return new PrepareContext(Guid.Empty, null, null, false, createSession.ToResult());
+
+        var sessionGuid = createSession.Value;
+
+        var buildInfra = BuildJapInfrastructure(sessionGuid, sessionStore, jobName, bootStrapConfig, errorHandler, adapterManager);
+        if (!buildInfra.Succeeded)
+            return new PrepareContext(sessionGuid, null, null, false, buildInfra.ToResult());
+
+        var (japServer, jipDispatcher) = buildInfra.Value;
+
+        var credentials = await ResolveCredentials(sessionGuid, sessionStore, jobName, startSpec.TechnicalUserName, adapterManager, errorHandler);
+        if (!credentials.Succeeded)
+            return new PrepareContext(sessionGuid, japServer, null, false, credentials.ToResult());
+
+        var launch = LaunchJobAndStorePid(sessionGuid, credentials.Value, sessionStore, jobExePath, jobName, errorHandler);
+        if (!launch.Succeeded)
+            return new PrepareContext(sessionGuid, japServer, null, false, launch);
+
+        var negotiation = await RunNegotiation(sessionGuid, japServer, jipDispatcher, sessionStore, jobName, errorHandler);
+        return new PrepareContext(sessionGuid, japServer, negotiation.ServerTask, negotiation.Accepted, Result.Success);
     }
 
     //
     // Allocates a new session GUID and persists a new JobSessionRecord with the initial info about the session.
     //
-    private static bool CreateSessionRecord(
-        PrepareContext ctx,
-        SessionStore sessionStore,
-        string jobName,
-        string jobExePath,
+    private static Result<Guid> CreateSessionRecord(
+        SessionStore     sessionStore,
+        string           jobName,
+        string           jobExePath,
         SessionStartSpec startSpec,
-        string plainArguments)
+        string           plainArguments)
     {
         var getJobExecutableVersion = GetJobExecutableVersion(jobExePath);
         if (!getJobExecutableVersion.Succeeded)
-        {
-            ctx.InnerError = getJobExecutableVersion.ToResult();
-            return false;
-        }
+            return Result<Guid>.Propagate(getJobExecutableVersion.ToResult<Guid>());
 
-        ctx.SessionGuid = Guid.NewGuid();
+        var sessionGuid = Guid.NewGuid();
         var save = sessionStore.SaveNewSession(new JobSessionRecord
         {
-            UID = ctx.SessionGuid,
-            JobTypeName = jobName,
-            Arguments = plainArguments,
-            Result = string.Empty,
-            JobVersion = getJobExecutableVersion.Value,
-            UserName = startSpec.CallerUser,
-            UserDomain = startSpec.CallerDomain,
-            ClientApplication = startSpec.CallerApplication,
-            ClientMachine = startSpec.CallerMachine,
-            TecUser = startSpec.TechnicalUserName,
-            Started = DateTime.Now,
-            ExecutionStatus = ExecutionStatus.Preparing,
+            UID                = sessionGuid,
+            JobTypeName        = jobName,
+            Arguments          = plainArguments,
+            Result             = string.Empty,
+            JobVersion         = getJobExecutableVersion.Value,
+            UserName           = startSpec.CallerUser,
+            UserDomain         = startSpec.CallerDomain,
+            ClientApplication  = startSpec.CallerApplication,
+            ClientMachine      = startSpec.CallerMachine,
+            TecUser            = startSpec.TechnicalUserName,
+            Started            = DateTime.Now,
+            ExecutionStatus    = ExecutionStatus.Preparing,
             JapServerProcessId = Environment.ProcessId,
-            JobHostProcessId = 0,
-            Host = Environment.MachineName,
+            JobHostProcessId   = 0,
+            Host               = Environment.MachineName,
         });
 
-        if (save.Succeeded) return true;
+        if (save.Succeeded) return sessionGuid;
 
-        ctx.SessionGuid = Guid.Empty; // record was never persisted — no valid session to reference
-        ctx.InnerError = save;
-        return false;
-        
-        //
-        // nested funtion
-        //
+        // Record was never persisted — no valid GUID to reference.
+        return Result<Guid>.Propagate(save.ToResult<Guid>());
+
+        // ── helpers ───────────────────────────────────────────────────────
         static Result<string> GetJobExecutableVersion(string jobExePath)
         {
             if (!File.Exists(jobExePath))
@@ -126,40 +137,37 @@ internal static partial class Host
             return jobVersion;
         }
     }
-    
+
     //
     // Resolves the configuration source and sets up the JAPServer and JIP dispatcher.
     //
-    private static bool BuildJapInfrastructure(
-        PrepareContext ctx,
-        SessionStore sessionStore,
-        string jobName,
+    private static Result<JapInfrastructure> BuildJapInfrastructure(
+        Guid             sessionGuid,
+        SessionStore     sessionStore,
+        string           jobName,
         IBootstrapConfig bootStrapConfig,
-        IErrorHandler errorHandler,
-        AdapterManager adapterManager)
+        IErrorHandler    errorHandler,
+        AdapterManager   adapterManager)
     {
         var configStore = new ConfigStore(bootStrapConfig.SessionStoreConnectionString);
 
         // Set up JAPServer with session info and register all JAP protocol handlers on the JIP dispatcher.
-        ctx.JapServer = new JAPServer(sessionStore, ctx.SessionGuid, jobName, errorHandler, configStore, adapterManager);
-        var dispatcherResult = new JipDispatcher().RegisterAll<IJosynApplicationProtocol>(ctx.JapServer);
+        var japServer        = new JAPServer(sessionStore, sessionGuid, jobName, errorHandler, configStore, adapterManager);
+        var dispatcherResult = new JipDispatcher().RegisterAll<IJosynApplicationProtocol>(japServer);
         if (!dispatcherResult.Succeeded)
         {
-            SetTerminalStatus(sessionStore, ctx.SessionGuid, ExecutionStatus.FinishedFaulted, errorHandler, jobName);
-            ctx.InnerError = dispatcherResult.ToResult();
-            return false;
+            SetTerminalStatus(sessionStore, sessionGuid, ExecutionStatus.FinishedFaulted, errorHandler, jobName);
+            return Result<JapInfrastructure>.Propagate(dispatcherResult.ToResult<JapInfrastructure>());
         }
 
-        ctx.JipDispatcher = dispatcherResult.Value;
-        return true;
+        return new JapInfrastructure(japServer, dispatcherResult.Value);
     }
 
     //
     // Calls the IdentityAdapter to resolve the password for the TechnicalUserName.
-    // The password is stored in ctx for use during job.exe spawn.
     //
-    private static async Task<bool> ResolveCredentials(
-        PrepareContext ctx,
+    private static async Task<Result<string>> ResolveCredentials(
+        Guid           sessionGuid,
         SessionStore   sessionStore,
         string         jobName,
         string         technicalUserName,
@@ -169,128 +177,120 @@ internal static partial class Host
         var getPipes = adapterManager.GetPipes(IdentityAdapterConcern);
         if (!getPipes.Succeeded)
         {
-            SetTerminalStatus(sessionStore, ctx.SessionGuid, ExecutionStatus.FinishedFaulted, errorHandler, jobName);
-            ctx.InnerError = getPipes.ToResult();
-            return false;
+            SetTerminalStatus(sessionStore, sessionGuid, ExecutionStatus.FinishedFaulted, errorHandler, jobName);
+            return Result<string>.Propagate(getPipes.ToResult<string>());
         }
 
         var getPassword = await JipClient.SendAsync(getPipes.Value, nameof(IIdentityAdapter.GetPassword), technicalUserName);
         if (!getPassword.Succeeded)
         {
-            SetTerminalStatus(sessionStore, ctx.SessionGuid, ExecutionStatus.FinishedFaulted, errorHandler, jobName);
-            ctx.InnerError = getPassword.ToResult();
-            return false;
+            SetTerminalStatus(sessionStore, sessionGuid, ExecutionStatus.FinishedFaulted, errorHandler, jobName);
+            return Result<string>.Propagate(getPassword.ToResult<string>());
         }
 
-        ctx.TechnicalUserPassword = getPassword.Value;
-        return true;
+        return getPassword.Value;
     }
 
-
-    private static bool LaunchJobAndStorePid(
-        PrepareContext ctx,
-        SessionStore sessionStore,
-        string jobExePath,
-        string jobName,
+    private static Result LaunchJobAndStorePid(
+        Guid          sessionGuid,
+        string        technicalUserPassword,   // TODO (ADR-017B-03): use for impersonated Process.Start
+        SessionStore  sessionStore,
+        string        jobExePath,
+        string        jobName,
         IErrorHandler errorHandler)
     {
-        // TODO (ADR-017B-03): replace with an impersonated Process.Start using
-        // ctx.TechnicalUserPassword and TechnicalUserName from the session record.
-        // ctx.TechnicalUserPassword is already resolved at this point.
-        var launch = PipesServer.StartClientProcess(jobExePath, ctx.SessionGuid);
+        var launch = PipesServer.StartClientProcess(jobExePath, sessionGuid);
         if (!launch.Succeeded)
         {
-            SetTerminalStatus(sessionStore, ctx.SessionGuid, ExecutionStatus.FinishedFaulted, errorHandler, jobName);
-            ctx.InnerError = launch.ToResult();
-            return false;
+            SetTerminalStatus(sessionStore, sessionGuid, ExecutionStatus.FinishedFaulted, errorHandler, jobName);
+            return Result.Propagate(launch.ToResult());
         }
 
-        var getSession = sessionStore.GetSession(ctx.SessionGuid);
+        var getSession = sessionStore.GetSession(sessionGuid);
         if (!getSession.Succeeded)
         {
             KillProcess(launch.Value);
-            SetTerminalStatus(sessionStore, ctx.SessionGuid, ExecutionStatus.FinishedFaulted, errorHandler, jobName);
-            ctx.InnerError = getSession.ToResult();
-            return false;
+            SetTerminalStatus(sessionStore, sessionGuid, ExecutionStatus.FinishedFaulted, errorHandler, jobName);
+            return Result.Propagate(getSession.ToResult());
         }
 
         // Guard: ISessionStore must return a JobSessionRecord. Any other type is a contract violation.
         if (getSession.Value is not JobSessionRecord sessionRecord)
         {
             KillProcess(launch.Value);
-            SetTerminalStatus(sessionStore, ctx.SessionGuid, ExecutionStatus.FinishedFaulted, errorHandler, jobName);
-            ctx.InnerError = Result.Fail("Session record is not a JobSessionRecord.");
-            return false;
+            SetTerminalStatus(sessionStore, sessionGuid, ExecutionStatus.FinishedFaulted, errorHandler, jobName);
+            return Result.Fail("Session record is not a JobSessionRecord.");
         }
 
         // Persist the job host process ID. Must succeed before the pipe server is started —
         // failure here kills the already-running job.exe and aborts the Prepare phase.
         var storePid = sessionStore.UpdateSession(sessionRecord with { JobHostProcessId = launch.Value });
-
-        if (storePid.Succeeded) return true;
+        if (storePid.Succeeded) return Result.Success;
 
         KillProcess(launch.Value);
-        SetTerminalStatus(sessionStore, ctx.SessionGuid, ExecutionStatus.FinishedFaulted, errorHandler, jobName);
-        ctx.InnerError = storePid;
-        return false;
-        
-        //
-        // Nested function...
-        //        
+        SetTerminalStatus(sessionStore, sessionGuid, ExecutionStatus.FinishedFaulted, errorHandler, jobName);
+        return storePid;
+
+        // ── helpers ───────────────────────────────────────────────────────
         static void KillProcess(int pid)
         {
             try { Process.GetProcessById(pid).Kill(); }
             catch { /* process may have already exited — ignore */ }
-        }        
+        }
     }
 
     //
-    // Awaits the negotiation outcome from JAPServer.NegotiationOutcome, which is set by the AcceptSession/RejectSession handlers.
+    // Awaits the negotiation outcome from JAPServer.NegotiationOutcome, which is set by the
+    // AcceptSession / RejectSession handlers. On timeout or rejection the pipe server is
+    // already awaited and torn down before this method returns; ServerTask is null in that case.
     //
-    private static async Task RunNegotiation(
-        PrepareContext ctx,
-        SessionStore sessionStore,
-        string jobName,
-        IErrorHandler errorHandler)
+    private static async Task<NegotiationOutcome> RunNegotiation(
+        Guid           sessionGuid,
+        JAPServer      japServer,
+        IJipDispatcher jipDispatcher,
+        SessionStore   sessionStore,
+        string         jobName,
+        IErrorHandler  errorHandler)
     {
+        // Local flag captured by the IsCancellationRequested lambda.
+        // C# closures capture by variable reference, so assignments below are seen by the lambda.
+        var shouldCancel = false;
+
         var serverStartArguments = new ServerStartArguments
         {
-            ConnectionTimeout = TimeSpan.FromMinutes(1),
-            HandleStringRequest = requestStr => HandleRequest(ctx.JipDispatcher!, requestStr),
-            SessionKey = ctx.SessionGuid,
-            HandleErrorNotification = (req, ex) => HandleHandlerError(req, ex, jobName, ctx.SessionGuid, errorHandler),
-            IsCancellationRequested = () => Task.FromResult(ctx.ShouldCancelServer),
+            ConnectionTimeout       = TimeSpan.FromMinutes(1),
+            HandleStringRequest     = requestStr => HandleRequest(jipDispatcher, requestStr),
+            SessionKey              = sessionGuid,
+            HandleErrorNotification = (req, ex) => HandleHandlerError(req, ex, jobName, sessionGuid, errorHandler),
+            IsCancellationRequested = () => Task.FromResult(shouldCancel),
         };
 
-        ctx.ServerTask = PipesServer.RunAsync(serverStartArguments);
+        var serverTask = PipesServer.RunAsync(serverStartArguments);
+        var winner     = await Task.WhenAny(japServer.NegotiationOutcome, Task.Delay(TimeSpan.FromSeconds(30)));
 
-        var winner = await Task.WhenAny(ctx.JapServer!.NegotiationOutcome, Task.Delay(TimeSpan.FromSeconds(30)));
-
-        if (winner != ctx.JapServer.NegotiationOutcome)
+        if (winner != japServer.NegotiationOutcome)
         {
             // Timeout — job.exe never called AcceptSession or RejectSession.
-            LocalLog.WriteError($"Negotiation timeout for session '{ctx.SessionGuid}' ({jobName}) — treating as rejected.");
-            SetTerminalStatus(sessionStore, ctx.SessionGuid, ExecutionStatus.FinishedRejected, errorHandler, jobName);
-            ctx.ShouldCancelServer = true;
-            await ctx.ServerTask;
-            ctx.ServerTask = null;
-            return;
+            LocalLog.WriteError($"Negotiation timeout for session '{sessionGuid}' ({jobName}) — treating as rejected.");
+            SetTerminalStatus(sessionStore, sessionGuid, ExecutionStatus.FinishedRejected, errorHandler, jobName);
+            shouldCancel = true;
+            await serverTask;
+            return new NegotiationOutcome(null, false);
         }
 
-        if (!ctx.JapServer.NegotiationOutcome.Result)
+        if (!japServer.NegotiationOutcome.Result)
         {
             // Rejected — JAPServer.RejectSession already set FinishedRejected.
-            ctx.ShouldCancelServer = true;
-            await ctx.ServerTask;
-            ctx.ServerTask = null;
-            return;
+            shouldCancel = true;
+            await serverTask;
+            return new NegotiationOutcome(null, false);
         }
 
         //
         // Accepted — JAPServer.AcceptSession already set Running.
         // Turnstile releases here: session is definitively in-flight.
         //
-        ctx.NegotiationAccepted = true;
+        return new NegotiationOutcome(serverTask, true);
     }
 
 }
