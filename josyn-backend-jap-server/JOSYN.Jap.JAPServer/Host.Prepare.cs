@@ -4,6 +4,7 @@ using JOSYN.Backend.Contracts;
 using JOSYN.Backend.ErrorHandler;
 using JOSYN.Backend.IdentityAdapter.Contract;
 using JOSYN.Backend.SessionStore;
+using JOSYN.Commons.Helpers;
 using JOSYN.Commons.Log;
 using JOSYN.Foundation.JIP;
 using JOSYN.Foundation.ResultPattern;
@@ -71,7 +72,7 @@ internal static partial class Host
         if (!credentials.Succeeded)
             return new PrepareContext(sessionGuid, japServer, null, false, credentials.ToResult());
 
-        var launch = LaunchJobAndStorePid(sessionGuid, credentials.Value, sessionStore, jobExePath, jobName, errorHandler);
+        var launch = LaunchJobAndStorePid(sessionGuid, startSpec.TechnicalUserName, credentials.Value, sessionStore, jobExePath, jobName, errorHandler);
         if (!launch.Succeeded)
             return new PrepareContext(sessionGuid, japServer, null, false, launch);
 
@@ -193,13 +194,28 @@ internal static partial class Host
 
     private static Result LaunchJobAndStorePid(
         Guid          sessionGuid,
-        string        technicalUserPassword,   // TODO (ADR-017B-03): use for impersonated Process.Start
+        string        technicalUserName,
+        string        technicalUserPassword,
         SessionStore  sessionStore,
         string        jobExePath,
         string        jobName,
         IErrorHandler errorHandler)
     {
-        var launch = PipesServer.StartClientProcess(jobExePath, sessionGuid);
+        if (!OperatingSystem.IsWindows())
+        {
+            SetTerminalStatus(sessionStore, sessionGuid, ExecutionStatus.FinishedFaulted, errorHandler, jobName);
+            return Result.Fail("Impersonated process launch is not supported on non-Windows platforms.");
+        }
+
+        var parseCredential = WindowsCredential.Parse(technicalUserName);
+        if (!parseCredential.Succeeded)
+        {
+            SetTerminalStatus(sessionStore, sessionGuid, ExecutionStatus.FinishedFaulted, errorHandler, jobName);
+            return Result.Propagate(parseCredential.ToResult());
+        }
+
+        var arguments = PipesProtocol.CreateClientStartCLIArguments(sessionGuid.ToString());
+        var launch    = ImpersonatedProcess.Start(jobExePath, arguments, technicalUserPassword, parseCredential.Value);
         if (!launch.Succeeded)
         {
             SetTerminalStatus(sessionStore, sessionGuid, ExecutionStatus.FinishedFaulted, errorHandler, jobName);

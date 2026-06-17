@@ -22,6 +22,7 @@ public record SessionStartSpec
     /// <summary>
     /// Windows account name under which <c>job.exe</c> should be spawned.
     /// Resolved from <c>JobRegistry</c> by <c>SessionLauncher</c>.
+    /// Must be in UPN format: <c>username@domain</c> (ADR-021).
     /// </summary>
     public string TechnicalUserName   { get; init; } = string.Empty;
 
