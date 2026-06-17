@@ -151,7 +151,7 @@ GO
 -- Registers the CLI demo job so bootstrap-local-dev is
 -- immediately usable without a manual INSERT.
 INSERT INTO [josyn].[JobRegistry] ([Name], [TechnicalUserName])
-VALUES ('Contoso.DemoProduct.DemoJob', 'tu.josyn');
+VALUES ('Contoso.DemoProduct.DemoJob', 'tu.job.default@LENOVO-LEGION');
 GO
 
 INSERT INTO [josyn].[ConfigStore] ([Key], [Value])
