@@ -20,6 +20,7 @@
 		<PackageProjectUrl>https://github.com/ckluth/JOSYN</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/ckluth/JOSYN</RepositoryUrl>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<PackageIcon>icon.png</PackageIcon>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<NoWarn>$(NoWarn);CS1591</NoWarn>
 	</PropertyGroup>
@@ -27,6 +28,9 @@
 		<PackageReference Include="JOSYN.Backend.Contracts"             Version="1.0.0-preview01"/>
 		<PackageReference Include="JOSYN.Foundation.ResultPattern"          Version="1.0.0-preview01"/>
 		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.5"/>
+	</ItemGroup>
+	<ItemGroup>
+		<None Include="icon.png" Pack="true" PackagePath="\"/>
 	</ItemGroup>
 	<ItemGroup>
 		<None Include="..\..\..\.gitignore" Visible="false"/>

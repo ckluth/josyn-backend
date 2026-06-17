@@ -21,11 +21,13 @@
 		<RepositoryUrl>https://github.com/ckluth/JOSYN</RepositoryUrl>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageIcon>icon.png</PackageIcon>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<NoWarn>$(NoWarn);CS1591;CS9113</NoWarn>
 	</PropertyGroup>
 	<ItemGroup>
 		<None Include="README.md" Pack="true" PackagePath="\"/>
+		<None Include="icon.png"  Pack="true" PackagePath="\"/>
 	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="JOSYN.Commons.Log"                              Version="1.0.0-preview01"/>

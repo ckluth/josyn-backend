@@ -2,7 +2,7 @@ using JOSYN.Backend.BootstrapConfig;
 using JOSYN.Backend.ConfigStore;
 using JOSYN.Backend.Contracts;
 using JOSYN.Backend.ErrorHandler;
-using JOSYN.Backend.IdentityAdapter.Contract;
+using JOSYN.Adapter.IdentityAdapter.Contract;
 using JOSYN.Backend.SessionStore;
 using JOSYN.Commons.Helpers;
 using JOSYN.Commons.IdentityHelpers;
@@ -120,7 +120,12 @@ internal static partial class Host
         // Record was never persisted — no valid GUID to reference.
         return Result<Guid>.Propagate(save.ToResult<Guid>());
 
-        // ── helpers ───────────────────────────────────────────────────────
+        
+        // ===================================================================
+        //
+        // nested functions
+        //
+        
         static Result<string> GetJobExecutableVersion(string jobExePath)
         {
             if (!File.Exists(jobExePath))

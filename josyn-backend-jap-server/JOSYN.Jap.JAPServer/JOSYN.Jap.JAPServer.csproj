@@ -29,8 +29,8 @@
 		<PackageReference Include="JOSYN.Backend.ErrorHandler"       Version="1.0.0-preview01"/>
 		<PackageReference Include="JOSYN.Backend.BootstrapConfig"      Version="1.0.0-preview01"/>
 		<PackageReference Include="JOSYN.Backend.SessionStore"       Version="1.0.0-preview01"/>
-		<PackageReference Include="JOSYN.Backend.IdentityAdapter.Contract"      Version="1.0.0-preview01"/>
-		<PackageReference Include="JOSYN.Backend.ConfigurationAdapter.Contract" Version="1.0.0-preview01"/>
+		<PackageReference Include="JOSYN.Adapter.IdentityAdapter.Contract"      Version="1.0.0-preview01"/>
+		<PackageReference Include="JOSYN.Adapter.ConfigurationAdapter.Contract" Version="1.0.0-preview01"/>
 		<PackageReference Include="JOSYN.Foundation.JIP"             Version="1.0.0-preview01"/>
 		<PackageReference Include="JOSYN.Foundation.PropertyBag"     Version="1.0.0-preview01"/>
 		<PackageReference Include="JOSYN.Foundation.ResultPattern"   Version="1.0.0-preview01"/>

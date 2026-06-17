@@ -1,5 +1,5 @@
 using System.Text.Json;
-using JOSYN.Backend.ConfigurationAdapter.Contract;
+using JOSYN.Adapter.ConfigurationAdapter.Contract;
 using JOSYN.Backend.Contracts;
 using JOSYN.Backend.ConfigStore;
 using JOSYN.Backend.ErrorHandler;
