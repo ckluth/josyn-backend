@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
-		<TargetFramework>net10.0</TargetFramework>
+		<TargetFramework>net10.0-windows</TargetFramework>
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
@@ -14,13 +14,12 @@
 		<Company>HAEVG</Company>
 		<Authors>HAEVG SWE</Authors>
 		<Copyright>Copyright © 2026 HAEVG AG</Copyright>
-		<Description>JOSYN Backend Ticker — Future Windows Service; polls once per minute for scheduled sessions and workflow-triggered sessions.</Description>
+		<Description>JOSYN Backend Ticker — periodic process launcher; fires orchestrators (TimeScheduler, WorkflowRunner) on a configurable minute-based schedule (ADR-024).</Description>
 	</PropertyGroup>
 	<ItemGroup>
-		<PackageReference Include="JOSYN.Backend.ErrorHandler"    Version="1.0.0-preview01"/>
-		<PackageReference Include="JOSYN.Backend.GlobalConfig"    Version="1.0.0-preview01"/>
-		<PackageReference Include="JOSYN.Backend.SessionStarter"  Version="1.0.0-preview01"/>
-		<PackageReference Include="JOSYN.Foundation.ResultPattern" Version="1.0.0-preview01"/>
+		<PackageReference Include="JOSYN.Foundation.PropertyBag"              Version="1.0.0-preview01"/>
+		<PackageReference Include="JOSYN.Foundation.ResultPattern"            Version="1.0.0-preview01"/>
+		<PackageReference Include="System.ServiceProcess.ServiceController"   Version="8.0.0"/>
 	</ItemGroup>
 	<ItemGroup>
 		<None Include="..\..\..\.gitignore" Visible="false"/>
