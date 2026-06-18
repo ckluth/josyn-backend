@@ -27,7 +27,7 @@ public interface IBootstrapConfig
     /// Adapter EXE registrations, keyed by concern name.
     /// Populated from the <c>[Adapters]</c> section of <c>josyn.bootstrap.ini</c>.
     /// Each entry maps a concern (e.g. <c>"IdentityAdapter"</c>) to an EXE filename
-    /// within the <c>Adapters/</c> subfolder next to <c>JAPServer.exe</c>
+    /// within the <c>Adapters/</c> subfolder next to <c>SessionBroker.exe</c>
     /// (e.g. <c>"IdentityAdapter.exe"</c>).
     /// Empty when the <c>[Adapters]</c> section is absent. Validation of required
     /// adapters is the caller's responsibility.

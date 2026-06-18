@@ -30,9 +30,9 @@ public class SessionLauncher : ISessionLauncher
             Interactive = request.Interactive
         };
         
-        var japServerExePath = Path.Combine(backendRoot, JapServerConstants.FolderName, JapServerConstants.ExeName);
+        var japServerExePath = Path.Combine(backendRoot, SessionBrokerConstants.FolderName, SessionBrokerConstants.ExeName);
         if (!File.Exists(japServerExePath))
-            return Result.Error($"JAPServer-Executable nicht gefunden: '{japServerExePath}'");
+            return Result.Error($"SessionBroker-Executable nicht gefunden: '{japServerExePath}'");
 
         var tempJobArgumentsFilePath = Path.Combine(Path.GetTempPath(), string.Format(tempFileNamePattern, Guid.NewGuid()));
 
@@ -47,7 +47,7 @@ public class SessionLauncher : ISessionLauncher
             Process.Start(new ProcessStartInfo
             {
                 FileName = japServerExePath,
-                Arguments = $"{JapServerConstants.CliModeStart} \"@{tempJobArgumentsFilePath}\"",
+                Arguments = $"{SessionBrokerConstants.CliModeStart} \"@{tempJobArgumentsFilePath}\"",
                 UseShellExecute = false
             });
 

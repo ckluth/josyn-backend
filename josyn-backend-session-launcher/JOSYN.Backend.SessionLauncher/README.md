@@ -4,7 +4,7 @@ Orchestrator-side launcher for JOSYN job sessions. Part of the JOSYN Backend.
 
 Provides `ISessionLauncher` / `SessionLauncher`: validates job registration, resolves
 `TechnicalUserName` from `JobRegistry`, builds a `SessionStartSpec`, writes it to a temp file,
-and spawns `JAPServer.exe JOSYN-START @<path>`.
+and spawns `SessionBroker.exe JOSYN-START @<path>`.
 
 ## Usage
 

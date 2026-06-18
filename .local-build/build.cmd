@@ -93,14 +93,6 @@ if %ERRORLEVEL% neq 0 (
     exit /b %ERRORLEVEL%
 )
 
-echo === JOSYN.Jap.JAPServer ===
-dotnet build "%ROOT%\josyn-backend-jap-server\JOSYN.Jap.JAPServer.slnx" --configuration %CONFIGURATION%
-if %ERRORLEVEL% neq 0 (
-    echo.
-    echo [FEHLER] Build fehlgeschlagen: JOSYN.Jap.JAPServer. Exit-Code: %ERRORLEVEL%
-    exit /b %ERRORLEVEL%
-)
-
 echo.
 echo [OK] Build erfolgreich abgeschlossen ^(%CONFIGURATION%^).
 exit /b 0
