@@ -1,8 +1,8 @@
-# insert-config-value.ps1
+	# insert-config-value.ps1
 # Inserts or updates a key/value pair in josyn.ConfigStore.
 # Run via insert-config-value.cmd.
 
-. "$PSScriptRoot\db-config.ps1"
+. "$PSScriptRoot\..\db-config.ps1"
 
 $key   = "RuntimeEnvironment"
 $value = "DEV"

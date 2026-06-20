@@ -7,8 +7,8 @@
 		<IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 		<LangVersion>latest</LangVersion>
-		<AssemblyName>TimeScheduler</AssemblyName>
-		<RootNamespace>TimeScheduler</RootNamespace>
+		<AssemblyName>JOSYN.Backend.TimeScheduler</AssemblyName>
+		<RootNamespace>JOSYN.Backend.TimeScheduler</RootNamespace>
 		<PlatformTarget>AnyCPU</PlatformTarget>
 		<Version>1.0.0-preview01</Version>
 		<Company>HAEVG</Company>
@@ -17,11 +17,13 @@
 		<Description>TimeScheduler stub — Ticker target; logs invocation and exits. Replace with real time-based session scheduling once the platform is ready.</Description>
 	</PropertyGroup>
 	<ItemGroup>
-		<PackageReference Include="JOSYN.Backend.ErrorHandler"    Version="1.0.0-preview01"/>
-		<PackageReference Include="JOSYN.Backend.BootstrapConfig" Version="1.0.0-preview01"/>
-		<PackageReference Include="JOSYN.Backend.JobRegistry"     Version="1.0.0-preview01"/>
-		<PackageReference Include="JOSYN.Backend.SessionLauncher" Version="1.0.0-preview01"/>
-		<PackageReference Include="JOSYN.Foundation.ResultPattern" Version="1.0.0-preview01"/>
+		<PackageReference Include="JOSYN.Backend.ErrorHandler"      Version="1.0.0-preview01"/>
+		<PackageReference Include="JOSYN.Backend.BootstrapConfig"   Version="1.0.0-preview01"/>
+		<PackageReference Include="JOSYN.Backend.JobRegistry"       Version="1.0.0-preview01"/>
+		<PackageReference Include="JOSYN.Backend.JobScheduleStore"  Version="1.0.0-preview01"/>
+		<PackageReference Include="JOSYN.Backend.SessionLauncher"   Version="1.0.0-preview01"/>
+		<PackageReference Include="JOSYN.Commons.Schedule"          Version="1.0.0-preview01"/>
+		<PackageReference Include="JOSYN.Foundation.ResultPattern"  Version="1.0.0-preview01"/>
 	</ItemGroup>
 	<ItemGroup>
 		<None Include="..\..\..\.gitignore"         Visible="false"/>

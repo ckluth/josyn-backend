@@ -5,7 +5,7 @@
 # WARNING: ALL EXISTING DATA WILL BE LOST.
 # Uses Windows authentication -- requires sysadmin rights on the target server.
 
-. "$PSScriptRoot\db-config.ps1"
+. "$PSScriptRoot\..\db-config.ps1"
 
 Write-Host ""
 Write-Host "=========================================================" -ForegroundColor Yellow

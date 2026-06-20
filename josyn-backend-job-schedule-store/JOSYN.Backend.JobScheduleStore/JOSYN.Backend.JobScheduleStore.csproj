@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<OutputType>Library</OutputType>
+		<TargetFramework>net10.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+		<LangVersion>latest</LangVersion>
+		<AssemblyName>JOSYN.Backend.JobScheduleStore</AssemblyName>
+		<RootNamespace>JOSYN.Backend.JobScheduleStore</RootNamespace>
+		<PlatformTarget>AnyCPU</PlatformTarget>
+		<Version>1.0.0-preview01</Version>
+		<Company>HAEVG</Company>
+		<Authors>HAEVG SWE</Authors>
+		<Copyright>Copyright © 2026 HAEVG AG</Copyright>
+		<Description>JOSYN Backend JobScheduleStore — Time-based scheduling configuration per job. Provides IJobScheduleStore, IJobScheduleRecord, and IJobScheduleEntryRecord; EF Core implementation against SQL Server.</Description>
+		<PackageId>JOSYN.Backend.JobScheduleStore</PackageId>
+		<RepositoryType>git</RepositoryType>
+		<PackageProjectUrl>https://github.com/ckluth/JOSYN</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/ckluth/JOSYN</RepositoryUrl>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageIcon>icon.png</PackageIcon>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<NoWarn>$(NoWarn);CS1591</NoWarn>
+	</PropertyGroup>
+	<ItemGroup>
+		<None Include="README.md" Pack="true" PackagePath="\" />
+		<None Include="icon.png" Pack="true" PackagePath="\" />
+	</ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="JOSYN.Foundation.ResultPattern" Version="1.0.0-preview01" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.5" />
+	</ItemGroup>
+	<ItemGroup>
+		<None Include="..\..\..\..\.gitignore" Visible="false" />
+		<None Include="..\nuget.config" Visible="false" />
+	</ItemGroup>
+</Project>

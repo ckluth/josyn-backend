@@ -2,10 +2,6 @@
 CHCP 1252
 setlocal
 
-:: -------------------------------------------------------
-:: Aufruf:  build.cmd [Release|Debug]
-:: Default: Release
-:: -------------------------------------------------------
 set "CONFIGURATION=%~1"
 if not defined CONFIGURATION set "CONFIGURATION=Release"
 
@@ -15,7 +11,7 @@ if /i "%CONFIGURATION%" neq "Release" if /i "%CONFIGURATION%" neq "Debug" (
     exit /b 1
 )
 
-set "SLNX_FILE=%~dp0..\JOSYN.Backend.TimeScheduler.slnx"
+set "SLNX_FILE=%~dp0..\JOSYN.Backend.JobScheduleStore.slnx"
 
 echo [INFO] Solution: %SLNX_FILE%
 echo [INFO] Starte dotnet build --configuration %CONFIGURATION% ...

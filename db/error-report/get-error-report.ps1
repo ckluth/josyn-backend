@@ -6,7 +6,7 @@ param(
     [int] $Top = 50
 )
 
-. "$PSScriptRoot\db-config.ps1"
+. "$PSScriptRoot\..\db-config.ps1"
 
 $output  = "$PSScriptRoot\error-report.md"
 

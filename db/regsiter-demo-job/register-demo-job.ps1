@@ -2,7 +2,7 @@
 # Temporary demo script — registers Contoso.DemoProduct.DemoJob in josyn.JobRegistry.
 # Run via register-demo-job.cmd.
 
-. "$PSScriptRoot\db-config.ps1"
+. "$PSScriptRoot\..\db-config.ps1"
 
 $jobTypeName  = "Contoso.DemoProduct.DemoJob"
 $techUser     = "tu.josyn"

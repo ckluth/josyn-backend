@@ -147,11 +147,71 @@ CREATE TABLE [josyn].[ConfigStore]
 );
 GO
 
--- ── Dev seed data ────────────────────────────────────────────
+-- ── V006 — josyn.ArgumentRecords ───────────────────────────────────
+-- Named INI argument payloads per job. 0-to-n records per job.
+-- "default" is the conventional name for the single-payload case (no enforcement).
+-- Content is stored verbatim; parsing is the caller's responsibility.
+-- See ADR-028.
+CREATE TABLE [josyn].[ArgumentRecords]
+(
+    [JobName] NVARCHAR(256) NOT NULL,
+    [Name]    NVARCHAR(128) NOT NULL,
+    [Content] NVARCHAR(MAX) NOT NULL,
+
+    CONSTRAINT [PK_ArgumentRecords] PRIMARY KEY CLUSTERED ([JobName], [Name]),
+    CONSTRAINT [FK_ArgumentRecords_JobRegistry]
+        FOREIGN KEY ([JobName]) REFERENCES [josyn].[JobRegistry] ([Name])
+);
+GO
+
+-- ── V007 — josyn.JobSchedules ────────────────────────────────────────
+-- Per-job scheduling header. One row per job that has any time-based schedule.
+-- Jobs with no row here are never launched by TimeScheduler.
+-- See ADR-027.
+CREATE TABLE [josyn].[JobSchedules]
+(
+    [JobName]        NVARCHAR(256) NOT NULL,
+    [Suspended]      BIT           NOT NULL CONSTRAINT [DF_JobSchedules_Suspended] DEFAULT (0),
+    [SuspendedUntil] DATE          NULL,
+
+    CONSTRAINT [PK_JobSchedules] PRIMARY KEY CLUSTERED ([JobName]),
+    CONSTRAINT [FK_JobSchedules_JobRegistry]
+        FOREIGN KEY ([JobName]) REFERENCES [josyn].[JobRegistry] ([Name])
+);
+GO
+
+-- ── V008 — josyn.JobScheduleEntries ──────────────────────────────────
+-- One row per independently scheduled invocation of a job.
+-- Each entry pairs a ScheduleDefinition (ADR-026 JSONC) with a named argument record.
+-- The FK to ArgumentRecords is logical only — enforced at the application layer.
+-- See ADR-027.
+CREATE TABLE [josyn].[JobScheduleEntries]
+(
+    [JobName]              NVARCHAR(256) NOT NULL,
+    [ArgumentRecordName]   NVARCHAR(128) NOT NULL,
+    [ScheduleDefinition]   NVARCHAR(MAX) NOT NULL,
+
+    CONSTRAINT [PK_JobScheduleEntries] PRIMARY KEY CLUSTERED ([JobName], [ArgumentRecordName]),
+    CONSTRAINT [FK_JobScheduleEntries_JobSchedules]
+        FOREIGN KEY ([JobName]) REFERENCES [josyn].[JobSchedules] ([JobName])
+);
+GO
+
+
 -- Registers the CLI demo job so bootstrap-local-dev is
 -- immediately usable without a manual INSERT.
 INSERT INTO [josyn].[JobRegistry] ([Name], [TechnicalUserName])
 VALUES ('Contoso.DemoProduct.DemoJob', 'tu.job.default@LENOVO-LEGION');
+GO
+
+INSERT INTO [josyn].[ArgumentRecords] ([JobName], [Name], [Content])
+VALUES ('Contoso.DemoProduct.DemoJob', 'default',
+'; DemoArguments
+Message=Hello contoso-demo-job
+RepeatCount=0
+ScheduledFor=19.06.2026
+IsHighPriority=False
+Budget=0,00');
 GO
 
 INSERT INTO [josyn].[ConfigStore] ([Key], [Value])
