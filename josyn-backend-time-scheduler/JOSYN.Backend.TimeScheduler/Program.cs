@@ -149,13 +149,20 @@ internal class Program
         return true;
     }
 
-    // ── schedule evaluation stub ──────────────────────────────────────────────
-    // TODO: replace with a real ScheduleEvaluator from JOSYN.Commons.Schedule
-    //       that parses the ScheduleDefinition JSONC and evaluates it against `now`.
-    //       Each rule type (interval, fixed, nth_weekday, monthly_date, week_interval,
-    //       once, exclude) requires its own evaluation logic.
-    //       The parsed ScheduleDefinition is available via ScheduleParser.Parse(entry.ScheduleDefinition).
-    private static bool IsDue(IJobScheduleEntryRecord entry, DateTime now) => true;
+    // ── schedule evaluation ───────────────────────────────────────────────────
+
+    private static bool IsDue(IJobScheduleEntryRecord entry, DateTime now)
+    {
+        var parseResult = ScheduleParser.Parse(entry.ScheduleDefinition);
+        if (!parseResult.Succeeded)
+        {
+            Log($"[WARN] Could not parse schedule for entry '{entry.ArgumentRecordName}': " +
+                parseResult.ErrorMessage);
+            return false;
+        }
+
+        return ScheduleEvaluator.IsDue(parseResult.Value, now);
+    }
 
     // ── logging ───────────────────────────────────────────────────────────────
     private static int Fail(string message)

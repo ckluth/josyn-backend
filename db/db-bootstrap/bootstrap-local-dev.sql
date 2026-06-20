@@ -218,6 +218,29 @@ INSERT INTO [josyn].[ConfigStore] ([Key], [Value])
 VALUES ('RuntimeEnvironment', 'DEV');
 GO
 
+-- ── Seed: job schedule for Contoso.DemoProduct.DemoJob ───────────────
+-- Every day, once a minute (00:00–23:59, 1-minute interval).
+INSERT INTO [josyn].[JobSchedules] ([JobName], [Suspended])
+VALUES ('Contoso.DemoProduct.DemoJob', 0);
+GO
+
+INSERT INTO [josyn].[JobScheduleEntries] ([JobName], [ArgumentRecordName], [ScheduleDefinition])
+VALUES (
+    'Contoso.DemoProduct.DemoJob',
+    'default',
+    N'[
+  // Every day, once a minute
+  {
+    "type": "interval",
+    "days": "daily",
+    "start": "00:00",
+    "end": "23:59",
+    "every": "1m"
+  }
+]'
+);
+GO
+
 
 
 
