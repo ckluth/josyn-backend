@@ -39,10 +39,15 @@ internal class Program
         if (!loadConfig.Succeeded)
             return Fail($"Could not load bootstrap configuration: {loadConfig.ErrorMessage}");
 
-        var config       = loadConfig.Value;
-        var errorHandler = new SqlErrorHandler(config.SessionStoreConnectionString);
+        var config         = loadConfig.Value;
+        var errorHandler   = new SqlErrorHandler(config.SessionStoreConnectionString);
+        var firedSlotStore = new SqlFiredSlotStore(config.SessionStoreConnectionString);
+        var registry       = new SqlJobRegistry(config.SessionStoreConnectionString);
+        var now            = TruncateToMinute(DateTime.Now);
 
         Log($"Config loaded from: {Path.GetFullPath(configPath)}");
+
+        PruneFiredSlots(firedSlotStore, now);
 
         var loadSchedules = new SqlJobScheduleStore(config.SessionStoreConnectionString).GetAll();
         if (!loadSchedules.Succeeded)
@@ -63,8 +68,6 @@ internal class Program
             return 0;
         }
 
-        var registry = new SqlJobRegistry(config.SessionStoreConnectionString);
-        var now      = DateTime.Now;
         var launched = 0;
         var errors   = 0;
 
@@ -79,13 +82,9 @@ internal class Program
 
             foreach (var entry in schedule.Entries)
             {
-                if (!IsDue(entry, now))
-                    continue;
-
-                if (LaunchEntry(schedule.JobName, entry, config, registry, errorHandler).Succeeded)
-                    launched++;
-                else
-                    errors++;
+                var outcome = ProcessEntry(schedule.JobName, entry, now, firedSlotStore, config, registry, errorHandler);
+                if      (outcome ==  1) launched++;
+                else if (outcome == -1) errors++;
             }
         }
 
@@ -151,18 +150,73 @@ internal class Program
 
     // ── schedule evaluation ───────────────────────────────────────────────────
 
-    private static bool IsDue(IJobScheduleEntryRecord entry, DateTime now)
+    private const int DefaultToleranceMinutes = 1;
+
+    // Returns 1 = launched, 0 = skipped (not due or already fired by a prior tick), -1 = error.
+    private static int ProcessEntry(
+        string jobName, IJobScheduleEntryRecord entry, DateTime now,
+        IFiredSlotStore firedSlotStore, IBootstrapConfig config,
+        IJobRegistry registry, IErrorHandler errorHandler)
+    {
+        var slot = FindLatestSlot(entry, now);
+        if (slot is null)
+            return 0;
+
+        var insertResult = firedSlotStore.TryInsert(jobName, entry.ArgumentRecordName, slot.Value, now);
+        if (!insertResult.Succeeded)
+        {
+            // DB error — do NOT launch: firing without the log record would break at-most-once.
+            errorHandler.Handle(
+                insertResult.ErrorMessage,
+                insertResult.CallStackAsString,
+                insertResult.Exception?.ToString(),
+                jobName);
+            Fail($"Fired-slot insert failed for '{jobName}' / '{entry.ArgumentRecordName}': {insertResult.ErrorMessage}");
+            return -1;
+        }
+
+        // Another tick already handled this slot within the tolerance window.
+        if (!insertResult.Value)
+            return 0;
+
+        return LaunchEntry(jobName, entry, config, registry, errorHandler).Succeeded ? 1 : -1;
+    }
+
+    // Steps backward from now through [now − T, now] to find the latest canonical slot S.
+    // Returns null when no scheduled fire time falls within the tolerance window.
+    private static DateTime? FindLatestSlot(IJobScheduleEntryRecord entry, DateTime now)
     {
         var parseResult = ScheduleParser.Parse(entry.ScheduleDefinition);
         if (!parseResult.Succeeded)
         {
             Log($"[WARN] Could not parse schedule for entry '{entry.ArgumentRecordName}': " +
                 parseResult.ErrorMessage);
-            return false;
+            return null;
         }
 
-        return ScheduleEvaluator.IsDue(parseResult.Value, now);
+        var def = parseResult.Value;
+        var t   = entry.ToleranceMinutes ?? DefaultToleranceMinutes;
+
+        for (var offset = 0; offset <= t; offset++)
+        {
+            var candidate = now.AddMinutes(-offset);
+            if (ScheduleEvaluator.IsDue(def, candidate))
+                return candidate;
+        }
+        return null;
     }
+
+    // Prune fired-slot log: 1-day fixed ceiling + 10-minute cleanup buffer (ADR-029 §3 + OQ1).
+    private static void PruneFiredSlots(IFiredSlotStore store, DateTime now)
+    {
+        var cutoff = now.AddMinutes(-(1440 + 10));
+        var result = store.Prune(cutoff);
+        if (!result.Succeeded)
+            Log($"[WARN] Fired-slot prune failed (non-fatal): {result.ErrorMessage}");
+    }
+
+    private static DateTime TruncateToMinute(DateTime dt) =>
+        new(dt.Year, dt.Month, dt.Day, dt.Hour, dt.Minute, 0);
 
     // ── logging ───────────────────────────────────────────────────────────────
     private static int Fail(string message)

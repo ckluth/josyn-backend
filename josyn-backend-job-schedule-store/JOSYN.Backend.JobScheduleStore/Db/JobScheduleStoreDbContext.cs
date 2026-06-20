@@ -28,6 +28,7 @@ internal sealed class JobScheduleStoreDbContext(string connectionString) : DbCon
             e.Property(x => x.JobName).IsRequired().HasMaxLength(256);
             e.Property(x => x.ArgumentRecordName).IsRequired().HasMaxLength(256);
             e.Property(x => x.ScheduleDefinition).IsRequired();
+            e.Property(x => x.ToleranceMinutes);
 
             e.HasOne(x => x.Schedule)
              .WithMany(x => x.Entries)

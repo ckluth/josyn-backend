@@ -36,7 +36,8 @@ public sealed class SqlJobScheduleStore(string connectionString) : IJobScheduleS
                 .Select(e => (IJobScheduleEntryRecord)new JobScheduleEntryRecord
                 {
                     ArgumentRecordName = e.ArgumentRecordName,
-                    ScheduleDefinition = e.ScheduleDefinition
+                    ScheduleDefinition = e.ScheduleDefinition,
+                    ToleranceMinutes   = e.ToleranceMinutes
                 })
                 .ToList()
         };

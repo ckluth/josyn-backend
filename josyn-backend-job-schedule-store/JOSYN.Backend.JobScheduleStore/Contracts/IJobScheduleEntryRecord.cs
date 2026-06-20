@@ -6,4 +6,5 @@ public interface IJobScheduleEntryRecord
 {
     string ArgumentRecordName { get; }
     string ScheduleDefinition { get; }
+    int?   ToleranceMinutes   { get; }
 }

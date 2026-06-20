@@ -126,11 +126,31 @@ Each entry pairs a `ScheduleDefinition` (ADR-026 JSONC) with a named argument re
 
 | Column | Type | Nullable | Notes |
 |--------|------|----------|-------|
-| `JobName` | `NVARCHAR(200)` | NO | PK (part 1); FK → `josyn.JobSchedules.JobName` |
-| `ArgumentRecordName` | `NVARCHAR(200)` | NO | PK (part 2); FK → `josyn.ArgumentRecords.Name` (same `JobName`) |
+| `JobName` | `NVARCHAR(256)` | NO | PK (part 1); FK → `josyn.JobSchedules.JobName` |
+| `ArgumentRecordName` | `NVARCHAR(128)` | NO | PK (part 2); FK → `josyn.ArgumentRecords.Name` (same `JobName`) |
 | `ScheduleDefinition` | `NVARCHAR(MAX)` | NO | ADR-026 JSONC text, stored verbatim |
+| `ToleranceMinutes` | `INT` | YES | Override T for this entry. `NULL` = platform default (1 min). See ADR-029 §1. |
 
-**ADR:** ADR-027
+**ADR:** ADR-027, ADR-029
+
+---
+
+### `josyn.FiredSlots`
+
+Deduplication log for the `TimeScheduler` tolerance-window algorithm.
+One row per handled scheduled slot. Written *before* each session launch (at-most-once semantics).
+Pruned on every `TimeScheduler` invocation; rows older than 1 day + 10 minutes are removed.
+
+| Column | Type | Nullable | Notes |
+|--------|------|----------|-------|
+| `JobName` | `NVARCHAR(256)` | NO | PK (part 1) |
+| `ArgumentRecordName` | `NVARCHAR(128)` | NO | PK (part 2) |
+| `SlotTime` | `DATETIME2` | NO | PK (part 3); canonical scheduled fire time S |
+| `FiredAt` | `DATETIME2` | NO | Actual `now` of the tick that handled this slot |
+
+No FK constraints — this is a rolling operational log; rows are pruned, not cascaded.
+
+**ADR:** ADR-029
 
 ---
 
@@ -147,6 +167,9 @@ josyn.JobSchedules.JobName
 
 josyn.ArgumentRecords.(JobName, Name)
     ← josyn.JobScheduleEntries.(JobName, ArgumentRecordName)  [logical — not enforced as composite FK]
+
+josyn.FiredSlots
+    — no FK constraints; rolling deduplication log, pruned on each TimeScheduler invocation
 ```
 
 > The FK from `JobScheduleEntries` to `ArgumentRecords` is logical only. SQL Server does not

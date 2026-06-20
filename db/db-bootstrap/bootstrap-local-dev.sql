@@ -184,16 +184,34 @@ GO
 -- One row per independently scheduled invocation of a job.
 -- Each entry pairs a ScheduleDefinition (ADR-026 JSONC) with a named argument record.
 -- The FK to ArgumentRecords is logical only — enforced at the application layer.
--- See ADR-027.
+-- See ADR-027, ADR-029.
 CREATE TABLE [josyn].[JobScheduleEntries]
 (
     [JobName]              NVARCHAR(256) NOT NULL,
     [ArgumentRecordName]   NVARCHAR(128) NOT NULL,
     [ScheduleDefinition]   NVARCHAR(MAX) NOT NULL,
+    [ToleranceMinutes]     INT           NULL,      -- ADR-029 §1: override T; NULL = platform default (1 min)
 
     CONSTRAINT [PK_JobScheduleEntries] PRIMARY KEY CLUSTERED ([JobName], [ArgumentRecordName]),
     CONSTRAINT [FK_JobScheduleEntries_JobSchedules]
         FOREIGN KEY ([JobName]) REFERENCES [josyn].[JobSchedules] ([JobName])
+);
+GO
+
+-- ── V009 — josyn.FiredSlots ───────────────────────────────────────────
+-- Deduplication log for the TimeScheduler tolerance-window algorithm (ADR-029 §3).
+-- One row per handled scheduled slot. Written before each session launch to ensure
+-- at-most-once delivery. Pruned on every TimeScheduler invocation.
+-- PK (JobName, ArgumentRecordName, SlotTime) guarantees uniqueness per canonical slot S.
+-- No FK constraints — this is a rolling operational log; rows outlive no other entity.
+CREATE TABLE [josyn].[FiredSlots]
+(
+    [JobName]            NVARCHAR(256) NOT NULL,
+    [ArgumentRecordName] NVARCHAR(128) NOT NULL,
+    [SlotTime]           DATETIME2     NOT NULL,  -- canonical scheduled fire time S
+    [FiredAt]            DATETIME2     NOT NULL,  -- actual now of the tick that handled this slot
+
+    CONSTRAINT [PK_FiredSlots] PRIMARY KEY CLUSTERED ([JobName], [ArgumentRecordName], [SlotTime])
 );
 GO
 
