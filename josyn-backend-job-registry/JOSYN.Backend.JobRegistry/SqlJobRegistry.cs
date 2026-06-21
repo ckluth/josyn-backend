@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace JOSYN.Backend.JobRegistry;
 
-public sealed class SqlJobRegistry(string connectionString) : IJobRegistry
+public sealed class SqlJobRegistry(string connectionString) : IJobRegistry, IJobArgumentWriter
 {
     public Result<IJobRegistrationRecord> GetByName(string name)
     {
@@ -60,6 +60,40 @@ public sealed class SqlJobRegistry(string connectionString) : IJobRegistry
                 JobName = entity.JobName,
                 Name    = entity.Name,
                 Content = entity.Content
+            };
+        }
+        catch (Exception ex) { return ex; }
+    }
+
+    // ── IJobArgumentWriter ────────────────────────────────────────────────────
+
+    public Result<ArgumentChangeOutcome> ChangeArgument(string jobName, string argumentName, string content)
+    {
+        try
+        {
+            using var ctx = new JobRegistryDbContext(connectionString);
+
+            // Guard: job must exist
+            var jobExists = ctx.JobRegistrations.Any(e => e.Name == jobName);
+            if (!jobExists)
+                return Result.Error($"[NotFound] No job registered with name '{jobName}'.");
+
+            // Guard: argument record must exist (change-only; never creates)
+            var entity = ctx.ArgumentRecords
+                .FirstOrDefault(e => e.JobName == jobName && e.Name == argumentName);
+            if (entity is null)
+                return Result.Error($"[NotFound] No argument record '{argumentName}' found for job '{jobName}'.");
+
+            var before = entity.Content;
+            entity.Content = content;
+            ctx.SaveChanges();
+
+            return new ArgumentChangeOutcome
+            {
+                JobName      = jobName,
+                ArgumentName = argumentName,
+                Before       = before,
+                After        = content
             };
         }
         catch (Exception ex) { return ex; }
