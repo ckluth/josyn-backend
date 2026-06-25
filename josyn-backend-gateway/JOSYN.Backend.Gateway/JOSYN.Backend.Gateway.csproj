@@ -7,25 +7,26 @@
 		<IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 		<LangVersion>latest</LangVersion>
-		<AssemblyName>JOSYN.Backend.SurfaceAgent</AssemblyName>
-		<RootNamespace>JOSYN.Backend.SurfaceAgent</RootNamespace>
+		<AssemblyName>JOSYN.Backend.Gateway</AssemblyName>
+		<RootNamespace>JOSYN.Backend.Gateway</RootNamespace>
 		<PlatformTarget>AnyCPU</PlatformTarget>
 		<Version>1.0.0-preview01</Version>
 		<Company>HAEVG</Company>
 		<Authors>HAEVG SWE</Authors>
 		<Copyright>Copyright © 2026 HAEVG AG</Copyright>
-		<Description>JOSYN Backend SurfaceAgent — platform-resident command logic for the josyn-surface human window. Hosts write handlers that the surface CLI/Blazor invoke (in-process at MVP-2, over REST later). Never contains transport or hosting code in this increment.</Description>
-		<PackageId>JOSYN.Backend.SurfaceAgent</PackageId>
+		<Description>JOSYN Backend Gateway — platform-resident command logic for the JRP surface concern. Bridges JRP write commands to the backend store via JobRegistry. Accepts JOSYN.Jrp.* request types and returns JOSYN.Jrp.* response types; no backend type crosses the JRP boundary.</Description>
+		<PackageId>JOSYN.Backend.Gateway</PackageId>
 		<RepositoryType>git</RepositoryType>
 		<PackageProjectUrl>https://github.com/ckluth/JOSYN</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/ckluth/JOSYN</RepositoryUrl>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
-		<NoWarn>$(NoWarn);CS1591</NoWarn>
 	</PropertyGroup>
 	<ItemGroup>
 		<PackageReference Include="JOSYN.Foundation.ResultPattern"  Version="1.0.0-preview01" />
-		<PackageReference Include="JOSYN.Backend.JobRegistry"       Version="1.0.0-preview01" />
+		<PackageReference Include="JOSYN.Jrp.Launch"               Version="1.0.0-preview01" />
+		<PackageReference Include="JOSYN.Jrp.Surface"              Version="1.0.0-preview01" />
+		<PackageReference Include="JOSYN.Backend.JobRegistry"      Version="1.0.0-preview01" />
 	</ItemGroup>
 	<ItemGroup>
 		<None Include="..\..\..\.gitignore" Visible="false" />

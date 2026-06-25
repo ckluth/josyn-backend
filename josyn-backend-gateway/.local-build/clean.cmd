@@ -3,7 +3,7 @@ CHCP 1252
 setlocal
 
 set "NUGET_BASE=%USERPROFILE%\.nuget\packages"
-set "PACKAGE=josyn.backend.surfaceagent"
+set "PACKAGE=josyn.backend.gateway"
 
 if exist "%NUGET_BASE%\%PACKAGE%" (
     echo Loesche: %NUGET_BASE%\%PACKAGE%
