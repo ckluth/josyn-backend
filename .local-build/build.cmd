@@ -69,6 +69,14 @@ if %ERRORLEVEL% neq 0 (
     exit /b %ERRORLEVEL%
 )
 
+echo === JOSYN.Backend.Gateway ===
+dotnet build "%ROOT%\josyn-backend-gateway\JOSYN.Backend.Gateway.slnx" --configuration %CONFIGURATION%
+if %ERRORLEVEL% neq 0 (
+    echo.
+    echo [FEHLER] Build fehlgeschlagen: JOSYN.Backend.Gateway. Exit-Code: %ERRORLEVEL%
+    exit /b %ERRORLEVEL%
+)
+
 echo === JOSYN.Backend.Listener ===
 dotnet build "%ROOT%\josyn-backend-listener\JOSYN.Backend.Listener.slnx" --configuration %CONFIGURATION%
 if %ERRORLEVEL% neq 0 (

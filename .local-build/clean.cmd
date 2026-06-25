@@ -19,13 +19,16 @@ if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
 call :run_clean "josyn-backend-job-registry"
 if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
 
-call :run_clean "josyn-backend-session-starter"
+call :run_clean "josyn-backend-gateway"
+if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
+
+call :run_clean "josyn-backend-job-schedule-store"
+if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
+
+call :run_clean "josyn-backend-session-launcher"
 if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
 
 call :run_clean "josyn-backend-error-handler"
-if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
-
-call :run_clean "josyn-backend-jap-server"
 if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
 
 call :run_clean "josyn-backend-listener"

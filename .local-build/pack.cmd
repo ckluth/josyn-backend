@@ -19,6 +19,9 @@ if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
 call :run_pack "josyn-backend-job-registry"
 if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
 
+call :run_pack "josyn-backend-gateway"
+if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
+
 call :run_pack "josyn-backend-job-schedule-store"
 if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
 
