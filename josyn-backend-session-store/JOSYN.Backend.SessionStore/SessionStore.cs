@@ -112,6 +112,52 @@ public sealed class SessionStore(string connectionString) : ISessionStore
         catch (Exception ex) { return ex; }
     }
 
+    public Result<IReadOnlyList<IJobSessionRecord>> GetRecentSessions(int maxCount)
+    {
+        try
+        {
+            using var ctx = new SessionStoreDbContext(connectionString);
+            var entities = ctx.SessionStore
+                .AsNoTracking()
+                .OrderByDescending(e => e.Started)
+                .Take(maxCount)
+                .ToList();
+
+            var records = new List<IJobSessionRecord>(entities.Count);
+            foreach (var entity in entities)
+            {
+                var parseStatus = ExecutionStatusParser.Parse(entity.ExecutionStatus);
+                if (!parseStatus.Succeeded)
+                    return parseStatus.ToResult<IReadOnlyList<IJobSessionRecord>>();
+
+                records.Add(new JobSessionRecord
+                {
+                    UID               = entity.UID,
+                    JobTypeName       = entity.JobTypeName,
+                    Arguments         = entity.Arguments,
+                    Result            = entity.Result,
+                    JobVersion        = entity.JobVersion,
+                    UserName          = entity.UserName,
+                    UserDomain        = entity.UserDomain,
+                    ClientApplication = entity.ClientApplication,
+                    ClientMachine     = entity.ClientMachine,
+                    TecUser           = entity.TecUser,
+                    Started           = entity.Started,
+                    ExecutionStatus   = parseStatus.Value,
+                    Progress          = entity.Progress,
+                    Finished          = entity.Finished,
+                    JapServerProcessId = entity.JapServerProcessId,
+                    JobHostProcessId  = entity.JobHostProcessId,
+                    LastWriteTime     = entity.LastWriteTime,
+                    Host              = entity.Host
+                });
+            }
+
+            return Result<IReadOnlyList<IJobSessionRecord>>.Success(records);
+        }
+        catch (Exception ex) { return ex; }
+    }
+
     public Result<IReadOnlyList<string>> GetConcurrentSessionArguments(Guid excludeSessionGuid, string jobTypeName)
     {
         try
