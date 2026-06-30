@@ -6,4 +6,11 @@
 ; -------------------------------------------------------
 
 SessionStoreConnectionString=Server=localhost\SQLEXPRESS01;Database=josyn-db-local;User Id=tu.josyn;Password=josyn;TrustServerCertificate=True;
-; ConfigSourceType=HAEVG.Josyn.Adapter.HaevgConfigSource, HAEVG.Josyn.Adapter
+
+; Runtime environment this installation serves (DEV, INT, or PROD).
+; Optional for most hosts; required by the Gateway host — it fails fast when absent or invalid.
+; RuntimeEnvironment=DEV
+
+; URL the JRP Gateway host listens on. Required by the Gateway host; ignored by all other hosts.
+; Falls back to https://localhost:5001 when absent.
+; GatewayListenUrl=https://localhost:5001

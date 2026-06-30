@@ -71,5 +71,13 @@ public sealed class FileBootstrapConfig : IBootstrapConfig
     public string SessionStoreConnectionString => _root[nameof(IBootstrapConfig.SessionStoreConnectionString)];
 
     /// <inheritdoc/>
+    public string? RuntimeEnvironment =>
+        _root.TryGetValue(nameof(IBootstrapConfig.RuntimeEnvironment), out var v) ? v : null;
+
+    /// <inheritdoc/>
+    public string? GatewayListenUrl =>
+        _root.TryGetValue(nameof(IBootstrapConfig.GatewayListenUrl), out var v) ? v : null;
+
+    /// <inheritdoc/>
     public IReadOnlyDictionary<string, string> Adapters => _adapters;
 }

@@ -24,6 +24,24 @@ public interface IBootstrapConfig
     string SessionStoreConnectionString { get; }
 
     /// <summary>
+    /// The runtime environment this installation serves (e.g. <c>"DEV"</c>, <c>"INT"</c>,
+    /// <c>"PROD"</c>). Read from the root key <c>RuntimeEnvironment</c> in
+    /// <c>josyn.bootstrap.ini</c>.
+    /// <para>
+    /// Optional — not all hosts require this value. The Gateway host validates it is present
+    /// and parseable at startup and fails fast if it is missing.
+    /// </para>
+    /// </summary>
+    string? RuntimeEnvironment { get; }
+
+    /// <summary>
+    /// The URL the JRP Gateway host listens on (e.g. <c>"https://localhost:5001"</c>).
+    /// Read from the root key <c>GatewayListenUrl</c> in <c>josyn.bootstrap.ini</c>.
+    /// Optional — used only by the Gateway host; ignored by all other hosts.
+    /// </summary>
+    string? GatewayListenUrl { get; }
+
+    /// <summary>
     /// Adapter EXE registrations, keyed by concern name.
     /// Populated from the <c>[Adapters]</c> section of <c>josyn.bootstrap.ini</c>.
     /// Each entry maps a concern (e.g. <c>"IdentityAdapter"</c>) to an EXE filename

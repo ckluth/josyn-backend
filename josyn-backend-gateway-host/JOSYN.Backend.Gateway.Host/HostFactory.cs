@@ -10,14 +10,15 @@ namespace JOSYN.Backend.Gateway.Host;
 /// </summary>
 internal static class HostFactory
 {
-    internal static WebApplication Create(string[] args)
+    internal static WebApplication Create(string[] args, GatewayStartup startup)
     {
         var builder = WebApplication.CreateBuilder(args);
 
+        builder.WebHost.UseUrls(startup.ListenUrl);
         RegisterServices(builder.Services);
 
         var app = builder.Build();
-        ConfigurePipeline(app);
+        ConfigurePipeline(app, startup);
         return app;
 
         // ── helpers ────────────────────────────────────────────────────────────
@@ -32,11 +33,11 @@ internal static class HostFactory
             services.AddOpenApi();
         }
 
-        static void ConfigurePipeline(WebApplication app)
+        static void ConfigurePipeline(WebApplication app, GatewayStartup startup)
         {
             app.MapOpenApi();
             app.MapScalarApiReference();
-            app.MapEndpoints();
+            app.MapEndpoints(startup);
         }
     }
 }
